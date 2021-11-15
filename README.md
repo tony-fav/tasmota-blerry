@@ -7,3 +7,12 @@ Some of the commands used in `blerry.be` are not initialized by the time `autoex
 ```
 Rule1 ON System#Boot DO br load('blerry.be') ENDON
 ```
+
+or add this to an existing `autoexec.be` (functionally equivalent to the rule above)
+
+```python
+def SystemBoot_callback(value, trigger, msg)
+    load('blerry.be')
+end
+tasmota.add_rule("System#Boot", SystemBoot_callback)
+```

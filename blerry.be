@@ -1,13 +1,31 @@
-# ------------------------------
 # --------- USER INPUT ---------
-# ------------------------------
 var device_map = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075'},
                   'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075'}}
 var base_topic = 'tele/tasmota_blerry'
 var sensor_retain = false
-# ------------------------------
-# ------------------------------
-# ------------------------------
+var publish_attributes = true
+var publish_json = true
+
+# ----------- HELPERS ----------
+def TaylorLog(x)
+  var z = (x + 1.0)/(x - 1.0)
+  var step = ((x - 1.0) * (x - 1.0)) / ((x + 1.0) * (x + 1.0))
+  var totalValue = 0.0
+  var powe = 1.0
+  for count:0..9
+    z = step*z
+    totalValue = totalValue + (1.0 / powe) * z
+    powe = powe + 2.0
+  end
+  return 2.0*totalValue
+end
+
+def CalcTempHumToDew(t, h)
+  var gamma = TaylorLog(h / 100.0) + 17.62 * t / (243.5 + t)
+  return (243.5 * gamma / (17.62 - gamma))
+end
+
+# ----------- BLERRY -----------
 import string
 var device_topic = ''
 
@@ -34,13 +52,23 @@ def handle_GVH5075(value, trigger, msg)
             humi = (basenum % 1000)/10.0
         end
         var batt = adv_data.get(6,1)
-        # todo: This but as a JSON payload
-        tasmota.publish(base_topic + '/' + device_map[value['mac']]['alias'] + '/RSSI', string.format('%d', value['RSSI']), sensor_retain)
-        tasmota.publish(base_topic + '/' + device_map[value['mac']]['alias'] + '/TEMP', string.format('%f', temp), sensor_retain)
-        tasmota.publish(base_topic + '/' + device_map[value['mac']]['alias'] + '/TEMP_F', string.format('%f', 9./5.*temp+32.), sensor_retain)
-        tasmota.publish(base_topic + '/' + device_map[value['mac']]['alias'] + '/HUMIDITY', string.format('%f', humi), sensor_retain)
-        tasmota.publish(base_topic + '/' + device_map[value['mac']]['alias'] + '/BATTERY', string.format('%f', batt), sensor_retain)
-        tasmota.publish(base_topic + '/' + device_map[value['mac']]['alias'] + '/VIA_DEVICE', device_topic, sensor_retain)
+        var dewp = CalcTempHumToDew(temp, humi)
+        var this_topic = base_topic + '/' + device_map[value['mac']]['alias']
+        if publish_attributes
+          tasmota.publish(this_topic + '/Time', tasmota.time_str(tasmota.rtc()['local']), sensor_retain)
+          tasmota.publish(this_topic + '/alias', device_map[value['mac']]['alias'], sensor_retain)
+          tasmota.publish(this_topic + '/mac', value['mac'], sensor_retain)
+          tasmota.publish(this_topic + '/via_device', device_topic, sensor_retain)
+          tasmota.publish(this_topic + '/Temperature', string.format('%.1f', temp), sensor_retain)
+          tasmota.publish(this_topic + '/Humidity', string.format('%.1f', humi), sensor_retain)
+          tasmota.publish(this_topic + '/DewPoint', string.format('%.1f', dewp), sensor_retain)
+          tasmota.publish(this_topic + '/Battery', string.format('%d', batt), sensor_retain)
+          tasmota.publish(this_topic + '/RSSI', string.format('%d', value['RSSI']), sensor_retain)
+        end
+        if publish_json
+          var state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'], sensor_retain)
+          tasmota.publish(this_topic, state_payload)
+        end
       end
       i = i + adv_len + 1
     end
@@ -63,7 +91,6 @@ def Status_callback(value, trigger, msg)
 end
 tasmota.add_rule('Status', Status_callback)
 tasmota.cmd('Status')
-
 
 # Enable BLEDetails for All Aliased Devices and Make Rule
 tasmota.cmd('BLEDetails4')
