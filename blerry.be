@@ -34,6 +34,7 @@ def handle_GVH5075(value, trigger, msg)
             humi = (basenum % 1000)/10.0
         end
         var batt = adv_data.get(6,1)
+        # todo: This but as a JSON payload
         tasmota.publish(base_topic + '/' + device_map[value['mac']]['alias'] + '/RSSI', string.format('%d', value['RSSI']), sensor_retain)
         tasmota.publish(base_topic + '/' + device_map[value['mac']]['alias'] + '/TEMP', string.format('%f', temp), sensor_retain)
         tasmota.publish(base_topic + '/' + device_map[value['mac']]['alias'] + '/TEMP_F', string.format('%f', 9./5.*temp+32.), sensor_retain)
@@ -53,6 +54,7 @@ for mac:device_map.keys()
     if item['model'] == 'GVH5075'
         mac_to_handle[mac] = handle_GVH5075
     end
+    # todo: HA discovery maybe
 end
 
 # Get this Device's topic for VIA_DEVICE publish
@@ -73,4 +75,5 @@ def DetailsBLE_callback(value, trigger, msg)
     # log('No handle function for specified mac', value['mac']) # commented bc annoying
   end
 end
-tasmota.add_rule("details", DetailsBLE_callback) # DetailsBLE if https://github.com/arendst/Tasmota/pull/13671 is accepted
+tasmota.add_rule("DetailsBLE", DetailsBLE_callback) # https://github.com/arendst/Tasmota/pull/13671 was merged
+# tasmota.add_rule("details", DetailsBLE_callback) # DetailsBLE if https://github.com/arendst/Tasmota/pull/13671 is accepted
