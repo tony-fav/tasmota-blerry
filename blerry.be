@@ -33,6 +33,19 @@ end
 tasmota.add_rule('StatusNet', Status5_callback)
 tasmota.cmd('Status 5')
 
+def publish_sensor_discovery(mac, prop, dclass, unitm)
+  var item = device_map[mac]
+  var prefix = '{'
+  if item['use_lwt']
+    prefix = prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
+  else
+    prefix = prefix + '\"avty\": [],'
+  end
+  prefix = prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], hostname)
+  prefix = prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
+  tasmota.publish(string.format('homeassistant/sensor/blerry_%s/%s/config', item['alias'], prop), prefix + string.format('\"dev_cla\": \"%s\",\"unit_of_meas\": \"%s\",\"name\": \"%s %s\",\"uniq_id\": \"blerry_%s_%s\",\"val_tpl\": \"{{ value_json.%s }}\"}', dclass, unitm, item['alias'], prop, item['alias'], prop, prop), discovery_retain)
+end
+
 # GVH5075: Govee Temp and Humidity Sensor
 def handle_GVH5075(value, trigger, msg)
     var p = bytes(value['p'])
@@ -138,9 +151,9 @@ def handle_ATCpvvx(value, trigger, msg)
         # todo: break apart pvvx flag to its separate data
         # todo: additional discovery for pvvx flag data
         if is_pvvx
-          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"BatteryV\":\"%.2f\",\"RSSI\":\"%d\",\"flag\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,volt,value['RSSI'],flag)
+          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"Battery_Voltage\":\"%.2f\",\"RSSI\":\"%d\",\"flag\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,volt,value['RSSI'],flag)
         else
-          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"BatteryV\":\"%.2f\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,volt,value['RSSI'])
+          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"Battery_Voltage\":\"%.2f\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,volt,value['RSSI'])
         end
         tasmota.publish(this_topic, state_payload, sensor_retain)
         if publish_attributes
@@ -152,7 +165,7 @@ def handle_ATCpvvx(value, trigger, msg)
           tasmota.publish(this_topic + '/Humidity', string.format('%.1f', humi), sensor_retain)
           tasmota.publish(this_topic + '/DewPoint', string.format('%.1f', dewp), sensor_retain)
           tasmota.publish(this_topic + '/Battery', string.format('%d', batt), sensor_retain)
-          tasmota.publish(this_topic + '/BatteryV', string.format('%.2f', volt), sensor_retain)
+          tasmota.publish(this_topic + '/Battery_Voltage', string.format('%.2f', volt), sensor_retain)
           tasmota.publish(this_topic + '/RSSI', string.format('%d', value['RSSI']), sensor_retain)
           if is_pvvx
             tasmota.publish(this_topic + '/flag', string.format('%d', flag), sensor_retain)
@@ -172,37 +185,21 @@ for mac:device_map.keys()
     if item['model'] == 'GVH5075'
       mac_to_handle[mac] = handle_GVH5075
       if item['discovery']
-        var disc_payload_prefix = '{'
-        if item['use_lwt']
-          disc_payload_prefix = disc_payload_prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
-        else
-          disc_payload_prefix = disc_payload_prefix + '\"avty\": [],'
-        end
-        disc_payload_prefix = disc_payload_prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], hostname)
-        disc_payload_prefix = disc_payload_prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Temperature/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s Temperature\",\"uniq_id\": \"blerry_%s_Temperature\",\"val_tpl\": \"{{ value_json.Temperature }}\"}', item['alias'], item['alias']), discovery_retain)
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Humidity/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"humidity\",\"unit_of_meas\": \"%%\",\"name\": \"%s Humidity\",\"uniq_id\": \"blerry_%s_Humidity\",\"val_tpl\": \"{{ value_json.Humidity }}\"}', item['alias'], item['alias']), discovery_retain)
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/DewPoint/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s DewPoint\",\"uniq_id\": \"blerry_%s_DewPoint\",\"val_tpl\": \"{{ value_json.DewPoint }}\"}', item['alias'], item['alias']), discovery_retain)
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Battery/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"battery\",\"unit_of_meas\": \"%%\",\"name\": \"%s Battery\",\"uniq_id\": \"blerry_%s_Battery\",\"val_tpl\": \"{{ value_json.Battery }}\"}', item['alias'], item['alias']), discovery_retain)
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/RSSI/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"signal_strength\",\"unit_of_meas\": \"dB\",\"name\": \"%s RSSI\",\"uniq_id\": \"blerry_%s_RSSI\",\"val_tpl\": \"{{ value_json.RSSI }}\"}', item['alias'], item['alias']), discovery_retain)
+        publish_sensor_discovery(mac, 'Temperature', 'temperature', '°C')
+        publish_sensor_discovery(mac, 'Humidity', 'humidity', '%')
+        publish_sensor_discovery(mac, 'DewPoint', 'temperature', '°C')
+        publish_sensor_discovery(mac, 'Battery', 'battery', '%')
+        publish_sensor_discovery(mac, 'RSSI', 'signal_strength', 'dB')
       end
     elif item['model'] == 'ATCpvvx'
       mac_to_handle[mac] = handle_ATCpvvx
       if item['discovery']
-        var disc_payload_prefix = '{'
-        if item['use_lwt']
-          disc_payload_prefix = disc_payload_prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
-        else
-          disc_payload_prefix = disc_payload_prefix + '\"avty\": [],'
-        end
-        disc_payload_prefix = disc_payload_prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], hostname)
-        disc_payload_prefix = disc_payload_prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Temperature/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s Temperature\",\"uniq_id\": \"blerry_%s_Temperature\",\"val_tpl\": \"{{ value_json.Temperature }}\"}', item['alias'], item['alias']), discovery_retain)
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Humidity/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"humidity\",\"unit_of_meas\": \"%%\",\"name\": \"%s Humidity\",\"uniq_id\": \"blerry_%s_Humidity\",\"val_tpl\": \"{{ value_json.Humidity }}\"}', item['alias'], item['alias']), discovery_retain)
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/DewPoint/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s DewPoint\",\"uniq_id\": \"blerry_%s_DewPoint\",\"val_tpl\": \"{{ value_json.DewPoint }}\"}', item['alias'], item['alias']), discovery_retain)
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Battery/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"battery\",\"unit_of_meas\": \"%%\",\"name\": \"%s Battery\",\"uniq_id\": \"blerry_%s_Battery\",\"val_tpl\": \"{{ value_json.Battery }}\"}', item['alias'], item['alias']), discovery_retain)
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/BatteryV/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"voltage\",\"unit_of_meas\": \"V\",\"name\": \"%s Battery Voltage\",\"uniq_id\": \"blerry_%s_Battery_Voltage\",\"val_tpl\": \"{{ value_json.BatteryV }}\"}', item['alias'], item['alias']), discovery_retain)
-        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/RSSI/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"signal_strength\",\"unit_of_meas\": \"dB\",\"name\": \"%s RSSI\",\"uniq_id\": \"blerry_%s_RSSI\",\"val_tpl\": \"{{ value_json.RSSI }}\"}', item['alias'], item['alias']), discovery_retain)
+        publish_sensor_discovery(mac, 'Temperature', 'temperature', '°C')
+        publish_sensor_discovery(mac, 'Humidity', 'humidity', '%')
+        publish_sensor_discovery(mac, 'DewPoint', 'temperature', '°C')
+        publish_sensor_discovery(mac, 'Battery', 'battery', '%')
+        publish_sensor_discovery(mac, 'Battery_Voltage', 'voltage', 'V')
+        publish_sensor_discovery(mac, 'RSSI', 'signal_strength', 'dB')
       end
     end
 end
