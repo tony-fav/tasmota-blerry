@@ -49,6 +49,22 @@ def publish_sensor_discovery(mac, prop, dclass, unitm)
   tasmota.publish(string.format('homeassistant/sensor/blerry_%s/%s/config', item['alias'], prop), prefix + string.format('\"dev_cla\": \"%s\",\"unit_of_meas\": \"%s\",\"name\": \"%s %s\",\"uniq_id\": \"blerry_%s_%s\",\"val_tpl\": \"{{ value_json.%s }}\"}', dclass, unitm, item['alias'], prop, item['alias'], prop, prop), discovery_retain)
 end
 
+def publish_binary_sensor_discovery(mac, prop, dclass)
+  var item = device_map[mac]
+  var prefix = '{'
+  if item['use_lwt']
+    prefix = prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
+  else
+    prefix = prefix + '\"avty\": [],'
+  end
+  prefix = prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], hostname)
+  prefix = prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
+  if dclass != 'none'
+    prefix = prefix + string.format('\"dev_cla\": \"%s\",', dclass)
+  end
+  tasmota.publish(string.format('homeassistant/binary_sensor/blerry_%s/%s/config', item['alias'], prop), prefix + string.format('\"name\": \"%s %s\",\"uniq_id\": \"blerry_%s_%s\",\"val_tpl\": \"{{ value_json.%s }}\"}', item['alias'], prop, item['alias'], prop, prop), discovery_retain)
+end
+
 # GVH5075: Govee Temp and Humidity Sensor
 def handle_GVH5075(value, trigger, msg)
     var p = bytes(value['p'])
@@ -139,6 +155,15 @@ def handle_ATCpvvx(value, trigger, msg)
           output_map['Battery_Voltage'] = adv_data.get(12,-2)/1000.0
         elif adv_len == 18
             is_pvvx = true
+            if device_map[value['mac']]['discovery']
+              if !done_extra_discovery[value['mac']]
+                publish_binary_sensor_discovery(value['mac'], 'GPIO_PA6', 'none')
+                publish_binary_sensor_discovery(value['mac'], 'GPIO_PA5', 'none')
+                publish_binary_sensor_discovery(value['mac'], 'Triggered_by_Temperature', 'none')
+                publish_binary_sensor_discovery(value['mac'], 'Triggered_by_Humidity', 'none')
+                done_extra_discovery[value['mac']] = true
+              end
+            end
             output_map['Temperature'] = adv_data.geti(8,2)/100.0
             output_map['Humidity'] = adv_data.get(10,2)/100.0
             output_map['Battery_Voltage'] = adv_data.get(12,2)/1000.0
@@ -146,24 +171,24 @@ def handle_ATCpvvx(value, trigger, msg)
             output_map['Count'] = adv_data.get(15,1)
             output_map['Flag'] = adv_data.get(16,1)
             if output_map['Flag'] & 1
-              output_map['Input_GPIO'] = 'ON'
+              output_map['GPIO_PA6'] = 'ON'
             else
-              output_map['Input_GPIO'] = 'OFF'
+              output_map['GPIO_PA6'] = 'OFF'
             end
             if output_map['Flag'] & 2
-              output_map['Output_GPIO'] = 'ON'
+              output_map['GPIO_PA5'] = 'ON'
             else
-              output_map['Output_GPIO'] = 'OFF'
+              output_map['GPIO_PA5'] = 'OFF'
             end
             if output_map['Flag'] & 4
-              output_map['Temperature_Trigger'] = 'ON'
+              output_map['Triggered_by_Temperature'] = 'ON'
             else
-              output_map['Temperature_Trigger'] = 'OFF'
+              output_map['Triggered_by_Temperature'] = 'OFF'
             end
             if output_map['Flag'] & 8
-              output_map['Humidity_Trigger'] = 'ON'
+              output_map['Triggered_by_Humidity'] = 'ON'
             else
-              output_map['Humidity_Trigger'] = 'OFF'
+              output_map['Triggered_by_Humidity'] = 'OFF'
             end
         end
         output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'])
@@ -204,6 +229,7 @@ for mac:device_map.keys()
         publish_sensor_discovery(mac, 'Battery', 'battery', '%')
         publish_sensor_discovery(mac, 'Battery_Voltage', 'voltage', 'V')
         publish_sensor_discovery(mac, 'RSSI', 'signal_strength', 'dB')
+        done_extra_discovery[mac] = false # for pvvx if it is pvvx
       end
     end
 end
