@@ -6,15 +6,18 @@ var base_topic = 'tele/tasmota_blerry'
 var sensor_retain = false
 var publish_attributes = true
 
-# ----------- HELPERS ----------
+# ----------- IMPORTS ----------
 import math
+import string
+import json
+
+# ----------- HELPERS ----------
 def get_dewpoint(t, h)
   var gamma = math.log(h / 100.0) + 17.62 * t / (243.5 + t)
   return (243.5 * gamma / (17.62 - gamma))
 end
 
 # ----------- BLERRY -----------
-import string
 var discovery_retain = true # only false when testing
 var last_message = {}
 var done_extra_discovery = {}
@@ -69,31 +72,28 @@ def handle_GVH5075(value, trigger, msg)
         else
           last_message[value['mac']] = adv_data
         end
+        var output_map = {}
+        output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
+        output_map['alias'] = device_map[value['mac']]['alias']
+        output_map['mac'] = value['mac']
+        output_map['via_device'] = device_topic
+        output_map['RSSI'] = value['RSSI']
         var basenum = (bytes('00') + adv_data[3..5]).get(0,-4)
-        var temp = 0
-        var humi = 0
         if basenum >= 0x800000
-            temp = (0x800000 - basenum)/10000.0
-            humi = ((basenum - 0x800000) % 1000)/10.0
+          output_map['Temperature'] = (0x800000 - basenum)/10000.0
+          output_map['Humidity'] = ((basenum - 0x800000) % 1000)/10.0
         else
-            temp = basenum/10000.0
-            humi = (basenum % 1000)/10.0
+          output_map['Temperature'] = basenum/10000.0
+          output_map['Humidity'] = (basenum % 1000)/10.0
         end
-        var batt = adv_data.get(6,1)
-        var dewp = get_dewpoint(temp, humi)
+        output_map['Battery'] = adv_data.get(6,1)
+        output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'])
         var this_topic = base_topic + '/' + device_map[value['mac']]['alias']
-        var state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'])
-        tasmota.publish(this_topic, state_payload, sensor_retain)
+        tasmota.publish(this_topic, json.dump(output_map), sensor_retain)
         if publish_attributes
-          tasmota.publish(this_topic + '/Time', tasmota.time_str(tasmota.rtc()['local']), sensor_retain)
-          tasmota.publish(this_topic + '/alias', device_map[value['mac']]['alias'], sensor_retain)
-          tasmota.publish(this_topic + '/mac', value['mac'], sensor_retain)
-          tasmota.publish(this_topic + '/via_device', device_topic, sensor_retain)
-          tasmota.publish(this_topic + '/Temperature', string.format('%.1f', temp), sensor_retain)
-          tasmota.publish(this_topic + '/Humidity', string.format('%.1f', humi), sensor_retain)
-          tasmota.publish(this_topic + '/DewPoint', string.format('%.1f', dewp), sensor_retain)
-          tasmota.publish(this_topic + '/Battery', string.format('%d', batt), sensor_retain)
-          tasmota.publish(this_topic + '/RSSI', string.format('%d', value['RSSI']), sensor_retain)
+          for output_key:output_map.keys()
+            tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), sensor_retain)
+          end
         end
       end
       i = i + adv_len + 1
@@ -126,49 +126,53 @@ def handle_ATCpvvx(value, trigger, msg)
         else
           last_message[value['mac']] = adv_data
         end
-        var temp = 0
-        var humi = 0
-        var batt = 0
-        var volt = 0
-        var flag = 0
+        var output_map = {}
+        output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
+        output_map['alias'] = device_map[value['mac']]['alias']
+        output_map['mac'] = value['mac']
+        output_map['via_device'] = device_topic
+        output_map['RSSI'] = value['RSSI']
         if adv_len == 16
-            temp = adv_data.geti(8,-2)/10.0
-            humi = adv_data.get(10,1)
-            batt = adv_data.get(11,1)
-            volt = adv_data.get(12,-2)/1000.0
+          output_map['Temperature'] = adv_data.geti(8,-2)/10.0
+          output_map['Humidity'] = adv_data.get(10,1)
+          output_map['Battery'] = adv_data.get(11,1)
+          output_map['Battery_Voltage'] = adv_data.get(12,-2)/1000.0
         elif adv_len == 18
             is_pvvx = true
-            temp = adv_data.geti(8,2)/100.0
-            humi = adv_data.get(10,2)/100.0
-            volt = adv_data.get(12,2)/1000.0
-            batt = adv_data.get(14,1)
-            # meas_count = adv_data.get(15,1)
-            flag = adv_data.get(16,1)
+            output_map['Temperature'] = adv_data.geti(8,2)/100.0
+            output_map['Humidity'] = adv_data.get(10,2)/100.0
+            output_map['Battery_Voltage'] = adv_data.get(12,2)/1000.0
+            output_map['Battery'] = adv_data.get(14,1)
+            output_map['Count'] = adv_data.get(15,1)
+            output_map['Flag'] = adv_data.get(16,1)
+            if output_map['Flag'] & 1
+              output_map['Input_GPIO'] = 'ON'
+            else
+              output_map['Input_GPIO'] = 'OFF'
+            end
+            if output_map['Flag'] & 2
+              output_map['Output_GPIO'] = 'ON'
+            else
+              output_map['Output_GPIO'] = 'OFF'
+            end
+            if output_map['Flag'] & 4
+              output_map['Temperature_Trigger'] = 'ON'
+            else
+              output_map['Temperature_Trigger'] = 'OFF'
+            end
+            if output_map['Flag'] & 8
+              output_map['Humidity_Trigger'] = 'ON'
+            else
+              output_map['Humidity_Trigger'] = 'OFF'
+            end
         end
-        var dewp = get_dewpoint(temp, humi)
+        output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'])
         var this_topic = base_topic + '/' + device_map[value['mac']]['alias']
-        var state_payload = ''
-        # todo: break apart pvvx flag to its separate data
         # todo: additional discovery for pvvx flag data
-        if is_pvvx
-          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"Battery_Voltage\":\"%.2f\",\"RSSI\":\"%d\",\"flag\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,volt,value['RSSI'],flag)
-        else
-          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"Battery_Voltage\":\"%.2f\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,volt,value['RSSI'])
-        end
-        tasmota.publish(this_topic, state_payload, sensor_retain)
+        tasmota.publish(this_topic, json.dump(output_map), sensor_retain)
         if publish_attributes
-          tasmota.publish(this_topic + '/Time', tasmota.time_str(tasmota.rtc()['local']), sensor_retain)
-          tasmota.publish(this_topic + '/alias', device_map[value['mac']]['alias'], sensor_retain)
-          tasmota.publish(this_topic + '/mac', value['mac'], sensor_retain)
-          tasmota.publish(this_topic + '/via_device', device_topic, sensor_retain)
-          tasmota.publish(this_topic + '/Temperature', string.format('%.1f', temp), sensor_retain)
-          tasmota.publish(this_topic + '/Humidity', string.format('%.1f', humi), sensor_retain)
-          tasmota.publish(this_topic + '/DewPoint', string.format('%.1f', dewp), sensor_retain)
-          tasmota.publish(this_topic + '/Battery', string.format('%d', batt), sensor_retain)
-          tasmota.publish(this_topic + '/Battery_Voltage', string.format('%.2f', volt), sensor_retain)
-          tasmota.publish(this_topic + '/RSSI', string.format('%d', value['RSSI']), sensor_retain)
-          if is_pvvx
-            tasmota.publish(this_topic + '/flag', string.format('%d', flag), sensor_retain)
+          for output_key:output_map.keys()
+            tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), sensor_retain)
           end
         end
       end
