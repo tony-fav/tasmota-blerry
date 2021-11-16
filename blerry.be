@@ -1,6 +1,6 @@
 # --------- USER INPUT ---------
-var device_map = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': false},
-                  'A4C138BBBBBB': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true, 'use_lwt': false},
+var device_map = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true, 'use_lwt': false},
+                  'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'discovery': false, 'use_lwt': false},
                   'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true}}
 var base_topic = 'tele/tasmota_blerry'
 var sensor_retain = false
@@ -25,6 +25,12 @@ def Status_callback(value, trigger, msg)
 end
 tasmota.add_rule('Status', Status_callback)
 tasmota.cmd('Status')
+var hostname = ''
+def Status5_callback(value, trigger, msg)
+  hostname = value['Hostname']
+end
+tasmota.add_rule('StatusNet', Status5_callback)
+tasmota.cmd('Status 5')
 
 # GVH5075: Govee Temp and Humidity Sensor
 def handle_GVH5075(value, trigger, msg)
@@ -94,6 +100,7 @@ def handle_ATCpvvx(value, trigger, msg)
     adv_data = p[i+2..i+adv_len]
     if adv_type == 0x16 # Service Data 16-bit UUID, used by pvvx and ATC advert
       if adv_data[0..1] == bytes('1A18') # little endian of 0x181A
+        # todo: don't readvert if only thing new is the counter
         var last_data = bytes('')
         try
           last_data = last_message[value['mac']]
@@ -127,10 +134,12 @@ def handle_ATCpvvx(value, trigger, msg)
         var dewp = get_dewpoint(temp, humi)
         var this_topic = base_topic + '/' + device_map[value['mac']]['alias']
         var state_payload = ''
+        # todo: break apart pvvx flag to its separate data
+        # todo: additional discovery for pvvx flag data
         if is_pvvx
-          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'])
+          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"BatteryV\":\"%.2f\",\"RSSI\":\"%d\",\"flag\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,volt,value['RSSI'],flag)
         else
-          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\",\"flag\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'],flag)
+          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"BatteryV\":\"%.2f\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,volt,value['RSSI'])
         end
         tasmota.publish(this_topic, state_payload, sensor_retain)
         if publish_attributes
@@ -154,7 +163,7 @@ def handle_ATCpvvx(value, trigger, msg)
   end
 end
 
-# Register Aliases with Tasmota and Register Handle Functions
+# Register Aliases with Tasmota and Register Handle Functions, do HA MQTT Discovery
 var mac_to_handle = {}
 for mac:device_map.keys()
     var item = device_map[mac]
@@ -168,10 +177,13 @@ for mac:device_map.keys()
         else
           disc_payload_prefix = disc_payload_prefix + '\"avty\": [],'
         end
-        disc_payload_prefix = disc_payload_prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], device_topic)
+        disc_payload_prefix = disc_payload_prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], hostname)
         disc_payload_prefix = disc_payload_prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
         tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Temperature/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s Temperature\",\"uniq_id\": \"blerry_%s_Temperature\",\"val_tpl\": \"{{ value_json.Temperature }}\"}', item['alias'], item['alias']))
         tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Humidity/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"humidity\",\"unit_of_meas\": \"%%\",\"name\": \"%s Humidity\",\"uniq_id\": \"blerry_%s_Humidity\",\"val_tpl\": \"{{ value_json.Humidity }}\"}', item['alias'], item['alias']))
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/DewPoint/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s DewPoint\",\"uniq_id\": \"blerry_%s_DewPoint\",\"val_tpl\": \"{{ value_json.DewPoint }}\"}', item['alias'], item['alias']))
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Battery/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"battery\",\"unit_of_meas\": \"%%\",\"name\": \"%s Battery\",\"uniq_id\": \"blerry_%s_Battery\",\"val_tpl\": \"{{ value_json.Battery }}\"}', item['alias'], item['alias']))
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/RSSI/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"signal_strength\",\"unit_of_meas\": \"dB\",\"name\": \"%s RSSI\",\"uniq_id\": \"blerry_%s_RSSI\",\"val_tpl\": \"{{ value_json.RSSI }}\"}', item['alias'], item['alias']))
       end
     elif item['model'] == 'ATCpvvx'
       mac_to_handle[mac] = handle_ATCpvvx
@@ -182,13 +194,16 @@ for mac:device_map.keys()
         else
           disc_payload_prefix = disc_payload_prefix + '\"avty\": [],'
         end
-        disc_payload_prefix = disc_payload_prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], device_topic)
+        disc_payload_prefix = disc_payload_prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], hostname)
         disc_payload_prefix = disc_payload_prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
         tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Temperature/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s Temperature\",\"uniq_id\": \"blerry_%s_Temperature\",\"val_tpl\": \"{{ value_json.Temperature }}\"}', item['alias'], item['alias']))
         tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Humidity/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"humidity\",\"unit_of_meas\": \"%%\",\"name\": \"%s Humidity\",\"uniq_id\": \"blerry_%s_Humidity\",\"val_tpl\": \"{{ value_json.Humidity }}\"}', item['alias'], item['alias']))
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/DewPoint/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s DewPoint\",\"uniq_id\": \"blerry_%s_DewPoint\",\"val_tpl\": \"{{ value_json.DewPoint }}\"}', item['alias'], item['alias']))
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Battery/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"battery\",\"unit_of_meas\": \"%%\",\"name\": \"%s Battery\",\"uniq_id\": \"blerry_%s_Battery\",\"val_tpl\": \"{{ value_json.Battery }}\"}', item['alias'], item['alias']))
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/BatteryV/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"voltage\",\"unit_of_meas\": \"V\",\"name\": \"%s Battery Voltage\",\"uniq_id\": \"blerry_%s_Battery_Voltage\",\"val_tpl\": \"{{ value_json.BatteryV }}\"}', item['alias'], item['alias']))
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/RSSI/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"signal_strength\",\"unit_of_meas\": \"dB\",\"name\": \"%s RSSI\",\"uniq_id\": \"blerry_%s_RSSI\",\"val_tpl\": \"{{ value_json.RSSI }}\"}', item['alias'], item['alias']))
       end
     end
-    # todo: HA discovery maybe
 end
 
 # Enable BLEDetails for All Aliased Devices and Make Rule
