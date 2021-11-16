@@ -1,34 +1,30 @@
 # --------- USER INPUT ---------
-var device_map = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075'},
-                  'A4C138BBBBBB': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx'}}
+var device_map = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': false},
+                  'A4C138BBBBBB': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true, 'use_lwt': false},
+                  'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true}}
 var base_topic = 'tele/tasmota_blerry'
 var sensor_retain = false
 var publish_attributes = true
-var publish_json = true
 
 # ----------- HELPERS ----------
-def TaylorLog(x)
-  var z = (x + 1.0)/(x - 1.0)
-  var step = ((x - 1.0) * (x - 1.0)) / ((x + 1.0) * (x + 1.0))
-  var totalValue = 0.0
-  var powe = 1.0
-  for count:0..9
-    z = step*z
-    totalValue = totalValue + (1.0 / powe) * z
-    powe = powe + 2.0
-  end
-  return 2.0*totalValue
-end
-
-def CalcTempHumToDew(t, h)
-  var gamma = TaylorLog(h / 100.0) + 17.62 * t / (243.5 + t)
+import math
+def get_dewpoint(t, h)
+  var gamma = math.log(h / 100.0) + 17.62 * t / (243.5 + t)
   return (243.5 * gamma / (17.62 - gamma))
 end
 
 # ----------- BLERRY -----------
 import string
-var device_topic = ''
 var last_message = {}
+var done_extra_discovery = {}
+
+# Get this Device's topic for VIA_DEVICE publish
+var device_topic = ''
+def Status_callback(value, trigger, msg)
+  device_topic = value['Topic']
+end
+tasmota.add_rule('Status', Status_callback)
+tasmota.cmd('Status')
 
 # GVH5075: Govee Temp and Humidity Sensor
 def handle_GVH5075(value, trigger, msg)
@@ -64,8 +60,10 @@ def handle_GVH5075(value, trigger, msg)
             humi = (basenum % 1000)/10.0
         end
         var batt = adv_data.get(6,1)
-        var dewp = CalcTempHumToDew(temp, humi)
+        var dewp = get_dewpoint(temp, humi)
         var this_topic = base_topic + '/' + device_map[value['mac']]['alias']
+        var state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'])
+        tasmota.publish(this_topic, state_payload, sensor_retain)
         if publish_attributes
           tasmota.publish(this_topic + '/Time', tasmota.time_str(tasmota.rtc()['local']), sensor_retain)
           tasmota.publish(this_topic + '/alias', device_map[value['mac']]['alias'], sensor_retain)
@@ -76,10 +74,6 @@ def handle_GVH5075(value, trigger, msg)
           tasmota.publish(this_topic + '/DewPoint', string.format('%.1f', dewp), sensor_retain)
           tasmota.publish(this_topic + '/Battery', string.format('%d', batt), sensor_retain)
           tasmota.publish(this_topic + '/RSSI', string.format('%d', value['RSSI']), sensor_retain)
-        end
-        if publish_json
-          var state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'])
-          tasmota.publish(this_topic, state_payload, sensor_retain)
         end
       end
       i = i + adv_len + 1
@@ -130,8 +124,15 @@ def handle_ATCpvvx(value, trigger, msg)
             # meas_count = adv_data.get(15,1)
             flag = adv_data.get(16,1)
         end
-        var dewp = CalcTempHumToDew(temp, humi)
+        var dewp = get_dewpoint(temp, humi)
         var this_topic = base_topic + '/' + device_map[value['mac']]['alias']
+        var state_payload = ''
+        if is_pvvx
+          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'])
+        else
+          state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\",\"flag\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'],flag)
+        end
+        tasmota.publish(this_topic, state_payload, sensor_retain)
         if publish_attributes
           tasmota.publish(this_topic + '/Time', tasmota.time_str(tasmota.rtc()['local']), sensor_retain)
           tasmota.publish(this_topic + '/alias', device_map[value['mac']]['alias'], sensor_retain)
@@ -147,15 +148,6 @@ def handle_ATCpvvx(value, trigger, msg)
             tasmota.publish(this_topic + '/flag', string.format('%d', flag), sensor_retain)
           end
         end
-        if publish_json
-          var state_payload = ''
-          if is_pvvx
-            state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'])
-          else
-            state_payload = string.format('{\"Time\":\"%s\",\"alias\":\"%s\",\"mac\":\"%s\",\"via_device\":\"%s\",\"Temperature\":\"%.1f\",\"Humidity\":\"%.1f\",\"DewPoint\":\"%.1f\",\"Battery\":\"%d\",\"RSSI\":\"%d\",\"flag\":\"%d\"}',tasmota.time_str(tasmota.rtc()['local']),device_map[value['mac']]['alias'],value['mac'],device_topic,temp,humi,dewp,batt,value['RSSI'],flag)
-          end
-          tasmota.publish(this_topic, state_payload, sensor_retain)
-        end
       end
     end
     i = i + adv_len + 1
@@ -169,18 +161,35 @@ for mac:device_map.keys()
     tasmota.cmd(string.format('BLEAlias %s=%s', mac, item['alias']))
     if item['model'] == 'GVH5075'
       mac_to_handle[mac] = handle_GVH5075
+      if item['discovery']
+        var disc_payload_prefix = '{'
+        if item['use_lwt']
+          disc_payload_prefix = disc_payload_prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
+        else
+          disc_payload_prefix = disc_payload_prefix + '\"avty\": [],'
+        end
+        disc_payload_prefix = disc_payload_prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], device_topic)
+        disc_payload_prefix = disc_payload_prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Temperature/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s Temperature\",\"uniq_id\": \"blerry_%s_Temperature\",\"val_tpl\": \"{{ value_json.Temperature }}\"}', item['alias'], item['alias']))
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Humidity/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"humidity\",\"unit_of_meas\": \"%%\",\"name\": \"%s Humidity\",\"uniq_id\": \"blerry_%s_Humidity\",\"val_tpl\": \"{{ value_json.Humidity }}\"}', item['alias'], item['alias']))
+      end
     elif item['model'] == 'ATCpvvx'
       mac_to_handle[mac] = handle_ATCpvvx
+      if item['discovery']
+        var disc_payload_prefix = '{'
+        if item['use_lwt']
+          disc_payload_prefix = disc_payload_prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
+        else
+          disc_payload_prefix = disc_payload_prefix + '\"avty\": [],'
+        end
+        disc_payload_prefix = disc_payload_prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], device_topic)
+        disc_payload_prefix = disc_payload_prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Temperature/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"temperature\",\"unit_of_meas\": \"°C\",\"name\": \"%s Temperature\",\"uniq_id\": \"blerry_%s_Temperature\",\"val_tpl\": \"{{ value_json.Temperature }}\"}', item['alias'], item['alias']))
+        tasmota.publish(string.format('homeassistant/sensor/blerry_%s/Humidity/config', item['alias']), disc_payload_prefix + string.format('\"dev_cla\": \"humidity\",\"unit_of_meas\": \"%%\",\"name\": \"%s Humidity\",\"uniq_id\": \"blerry_%s_Humidity\",\"val_tpl\": \"{{ value_json.Humidity }}\"}', item['alias'], item['alias']))
+      end
     end
     # todo: HA discovery maybe
 end
-
-# Get this Device's topic for VIA_DEVICE publish
-def Status_callback(value, trigger, msg)
-  device_topic = value['Topic']
-end
-tasmota.add_rule('Status', Status_callback)
-tasmota.cmd('Status')
 
 # Enable BLEDetails for All Aliased Devices and Make Rule
 tasmota.cmd('BLEDetails4')
