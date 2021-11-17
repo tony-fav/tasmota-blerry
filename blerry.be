@@ -1,15 +1,26 @@
 # --------- USER INPUT ---------
-var device_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true, 'use_lwt': false, 'via_pubs': true},
-                     'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'discovery': false, 'use_lwt': false, 'via_pubs': true},
-                     'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true, 'via_pubs': true}}
+var user_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true},
+                   'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'via_pubs': false},
+                   'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true}}
 var base_topic = 'tele/tasmota_blerry'
-var sensor_retain = false
-var publish_attributes = true
 
 # ----------- IMPORTS ----------
 import math
 import string
 import json
+
+# ----------- DEFAULT ----------
+var default_config = {'model': 'ATCpvvx',
+                      'discovery': false, 
+                      'use_lwt': false, 
+                      'via_pubs': true, 
+                      'last_p': bytes(''),
+                      'done_disc': false,
+                      'done_extra_disc': false,
+                      'sensor_retain': false,
+                      'publish_attributes': true,
+                      'dewpoint_precision': 2}
+var device_config = {}
 
 # ----------- HELPERS ----------
 def get_dewpoint(t, h, p) # temp, humidity, precision
@@ -20,8 +31,6 @@ end
 
 # ----------- BLERRY -----------
 var discovery_retain = true # only false when testing
-var last_message = {}
-var done_extra_discovery = {}
 
 # Get this Device's topic for VIA_DEVICE publish
 var device_topic = ''
@@ -79,11 +88,19 @@ def handle_GVH5075(value, trigger, msg)
     adv_type = p.get(i+1,1)
     adv_data = p[i+2..i+adv_len]
     if adv_type == 0xFF
-      var last_data = last_message[value['mac']]
+      var last_data = this_device['last_p']
       if adv_data == last_data
         return 0
       else
-        last_message[value['mac']] = adv_data
+        device_config[value['mac']]['last_p'] = adv_data
+      end
+      if this_device['discovery'] && !this_device['done_disc']
+        publish_sensor_discovery(value['mac'], 'Temperature', 'temperature', '°C')
+        publish_sensor_discovery(value['mac'], 'Humidity', 'humidity', '%')
+        publish_sensor_discovery(value['mac'], 'DewPoint', 'temperature', '°C')
+        publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
+        publish_sensor_discovery(value['mac'], 'RSSI', 'signal_strength', 'dB')
+        device_config[value['mac']]['done_disc'] = true
       end
       var output_map = {}
       output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
@@ -104,12 +121,12 @@ def handle_GVH5075(value, trigger, msg)
         output_map['Humidity'] = (basenum % 1000)/10.0
       end
       output_map['Battery'] = adv_data.get(6,1)
-      output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'], 2)
+      output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'], this_device['dewpoint_precision'])
       var this_topic = base_topic + '/' + this_device['alias']
-      tasmota.publish(this_topic, json.dump(output_map), sensor_retain)
-      if publish_attributes
+      tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
+      if this_device['publish_attributes']
         for output_key:output_map.keys()
-          tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), sensor_retain)
+          tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), this_device['sensor_retain'])
         end
       end
     end
@@ -131,14 +148,23 @@ def handle_ATCpvvx(value, trigger, msg)
     adv_data = p[i+2..i+adv_len]
     if adv_type == 0x16 # Service Data 16-bit UUID, used by pvvx and ATC advert
       if adv_data[0..1] == bytes('1A18') # little endian of 0x181A
-        var last_data = last_message[value['mac']]
+        var last_data = this_device['last_p']
         if (size(last_data) == 18) && (adv_len == 18)  # use this to ignore re-processing of "same data, new counter"
           last_data[15] = adv_data[15]
         end
         if adv_data == last_data
           return 0
         else
-          last_message[value['mac']] = adv_data
+          device_config[value['mac']]['last_p'] = adv_data
+        end
+        if this_device['discovery'] && !this_device['done_disc']
+          publish_sensor_discovery(value['mac'], 'Temperature', 'temperature', '°C')
+          publish_sensor_discovery(value['mac'], 'Humidity', 'humidity', '%')
+          publish_sensor_discovery(value['mac'], 'DewPoint', 'temperature', '°C')
+          publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
+          publish_sensor_discovery(value['mac'], 'Battery_Voltage', 'voltage', 'V')
+          publish_sensor_discovery(value['mac'], 'RSSI', 'signal_strength', 'dB')
+          device_config[value['mac']]['done_disc'] = true
         end
         var output_map = {}
         output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
@@ -156,14 +182,12 @@ def handle_ATCpvvx(value, trigger, msg)
           output_map['Battery'] = adv_data.get(11,1)
           output_map['Battery_Voltage'] = adv_data.get(12,-2)/1000.0
         elif adv_len == 18
-            if this_device['discovery']
-              if !done_extra_discovery[value['mac']]
-                publish_binary_sensor_discovery(value['mac'], 'GPIO_PA6', 'none')
-                publish_binary_sensor_discovery(value['mac'], 'GPIO_PA5', 'none')
-                publish_binary_sensor_discovery(value['mac'], 'Triggered_by_Temperature', 'none')
-                publish_binary_sensor_discovery(value['mac'], 'Triggered_by_Humidity', 'none')
-                done_extra_discovery[value['mac']] = true
-              end
+            if this_device['discovery'] && !this_device['done_extra_disc']
+              publish_binary_sensor_discovery(value['mac'], 'GPIO_PA6', 'none')
+              publish_binary_sensor_discovery(value['mac'], 'GPIO_PA5', 'none')
+              publish_binary_sensor_discovery(value['mac'], 'Triggered_by_Temperature', 'none')
+              publish_binary_sensor_discovery(value['mac'], 'Triggered_by_Humidity', 'none')
+              device_config[value['mac']]['done_extra_disc'] = true
             end
             output_map['Temperature'] = adv_data.geti(8,2)/100.0
             output_map['Humidity'] = adv_data.get(10,2)/100.0
@@ -192,12 +216,12 @@ def handle_ATCpvvx(value, trigger, msg)
               output_map['Triggered_by_Humidity'] = 'OFF'
             end
         end
-        output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'], 2)
+        output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'], this_device['dewpoint_precision'])
         var this_topic = base_topic + '/' + this_device['alias']
-        tasmota.publish(this_topic, json.dump(output_map), sensor_retain)
-        if publish_attributes
+        tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
+        if this_device['publish_attributes']
           for output_key:output_map.keys()
-            tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), sensor_retain)
+            tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), this_device['sensor_retain'])
           end
         end
       end
@@ -206,44 +230,26 @@ def handle_ATCpvvx(value, trigger, msg)
   end
 end
 
+var device_handles = {'GVH5075': handle_GVH5075, 
+                      'ATCpvvx': handle_ATCpvvx}
+
 # Register Aliases with Tasmota and Register Handle Functions, do HA MQTT Discovery
-var mac_to_handle = {}
-for mac:device_config.keys()
-    var item = device_config[mac]
-    last_message[mac] = bytes('')
-    tasmota.cmd(string.format('BLEAlias %s=%s', mac, item['alias']))
-    if item['model'] == 'GVH5075'
-      mac_to_handle[mac] = handle_GVH5075
-      if item['discovery']
-        publish_sensor_discovery(mac, 'Temperature', 'temperature', '°C')
-        publish_sensor_discovery(mac, 'Humidity', 'humidity', '%')
-        publish_sensor_discovery(mac, 'DewPoint', 'temperature', '°C')
-        publish_sensor_discovery(mac, 'Battery', 'battery', '%')
-        publish_sensor_discovery(mac, 'RSSI', 'signal_strength', 'dB')
-      end
-    elif item['model'] == 'ATCpvvx'
-      mac_to_handle[mac] = handle_ATCpvvx
-      if item['discovery']
-        publish_sensor_discovery(mac, 'Temperature', 'temperature', '°C')
-        publish_sensor_discovery(mac, 'Humidity', 'humidity', '%')
-        publish_sensor_discovery(mac, 'DewPoint', 'temperature', '°C')
-        publish_sensor_discovery(mac, 'Battery', 'battery', '%')
-        publish_sensor_discovery(mac, 'Battery_Voltage', 'voltage', 'V')
-        publish_sensor_discovery(mac, 'RSSI', 'signal_strength', 'dB')
-        done_extra_discovery[mac] = false # for pvvx if it is pvvx
-      end
-    end
+for mac:user_config.keys()
+  device_config[mac] = {}
+  for item:default_config.keys()
+    device_config[mac][item] = default_config[item]
+  end
+  for item:user_config[mac].keys()
+    device_config[mac][item] = user_config[mac][item]
+  end
+  device_config[mac]['handle'] = device_handles[device_config[mac]['model']]
+  tasmota.cmd(string.format('BLEAlias %s=%s', mac, device_config[mac]['alias']))
 end
 
 # Enable BLEDetails for All Aliased Devices and Make Rule
 tasmota.cmd('BLEDetails4')
 def DetailsBLE_callback(value, trigger, msg)
-  try
-    var f_handle = mac_to_handle[value['mac']]
-    f_handle(value, trigger, msg)
-  except 'key_error'
-    # log('No handle function for specified mac', value['mac']) # commented bc annoying
-  end
+    device_config[value['mac']]['handle'](value, trigger, msg)
 end
 tasmota.add_rule("DetailsBLE", DetailsBLE_callback) # https://github.com/arendst/Tasmota/pull/13671 was merged
 # tasmota.add_rule("details", DetailsBLE_callback) # DetailsBLE if https://github.com/arendst/Tasmota/pull/13671 is accepted
