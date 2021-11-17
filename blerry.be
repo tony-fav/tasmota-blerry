@@ -1,7 +1,7 @@
 # --------- USER INPUT ---------
-var device_map = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true, 'use_lwt': false},
-                  'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'discovery': false},
-                  'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true}}
+var device_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true, 'use_lwt': false, 'via_pubs': true},
+                     'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'discovery': false, 'use_lwt': false, 'via_pubs': true},
+                     'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true, 'via_pubs': true}}
 var base_topic = 'tele/tasmota_blerry'
 var sensor_retain = false
 var publish_attributes = true
@@ -12,9 +12,10 @@ import string
 import json
 
 # ----------- HELPERS ----------
-def get_dewpoint(t, h)
+def get_dewpoint(t, h, p) # temp, humidity, precision
   var gamma = math.log(h / 100.0) + 17.62 * t / (243.5 + t)
-  return (243.5 * gamma / (17.62 - gamma))
+  return math.ceil(math.pow(10.0, p)*(243.5 * gamma / (17.62 - gamma)))/math.pow(10.0, p) # p decimal precision
+  # return (243.5 * gamma / (17.62 - gamma))
 end
 
 # ----------- BLERRY -----------
@@ -37,7 +38,7 @@ tasmota.add_rule('StatusNet', Status5_callback)
 tasmota.cmd('Status 5')
 
 def publish_sensor_discovery(mac, prop, dclass, unitm)
-  var item = device_map[mac]
+  var item = device_config[mac]
   var prefix = '{'
   if item['use_lwt']
     prefix = prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
@@ -50,7 +51,7 @@ def publish_sensor_discovery(mac, prop, dclass, unitm)
 end
 
 def publish_binary_sensor_discovery(mac, prop, dclass)
-  var item = device_map[mac]
+  var item = device_config[mac]
   var prefix = '{'
   if item['use_lwt']
     prefix = prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
@@ -67,75 +68,72 @@ end
 
 # GVH5075: Govee Temp and Humidity Sensor
 def handle_GVH5075(value, trigger, msg)
-    var p = bytes(value['p'])
-    var i = 0
-    var adv_len = 0
-    var adv_data = bytes('')
-    var adv_type = 0
-    while i < size(p)
-      adv_len = p.get(i,1)
-      adv_type = p.get(i+1,1)
-      adv_data = p[i+2..i+adv_len]
-      if adv_type == 0xFF
-        var last_data = bytes('')
-        try
-          last_data = last_message[value['mac']]
-        except 'key_error'
-          last_data = bytes('')
-        end
-        if adv_data == last_data
-          return 0
-        else
-          last_message[value['mac']] = adv_data
-        end
-        var output_map = {}
-        output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
-        output_map['alias'] = device_map[value['mac']]['alias']
-        output_map['mac'] = value['mac']
-        output_map['via_device'] = device_topic
-        output_map['RSSI'] = value['RSSI']
-        var basenum = (bytes('00') + adv_data[3..5]).get(0,-4)
-        if basenum >= 0x800000
-          output_map['Temperature'] = (0x800000 - basenum)/10000.0
-          output_map['Humidity'] = ((basenum - 0x800000) % 1000)/10.0
-        else
-          output_map['Temperature'] = basenum/10000.0
-          output_map['Humidity'] = (basenum % 1000)/10.0
-        end
-        output_map['Battery'] = adv_data.get(6,1)
-        output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'])
-        var this_topic = base_topic + '/' + device_map[value['mac']]['alias']
-        tasmota.publish(this_topic, json.dump(output_map), sensor_retain)
-        if publish_attributes
-          for output_key:output_map.keys()
-            tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), sensor_retain)
-          end
-        end
-      end
-      i = i + adv_len + 1
-    end
-end
-
-# ATC or pvvx
-def handle_ATCpvvx(value, trigger, msg)
+  var this_device = device_config[value['mac']]
   var p = bytes(value['p'])
   var i = 0
   var adv_len = 0
   var adv_data = bytes('')
   var adv_type = 0
-  var is_pvvx = false
+  while i < size(p)
+    adv_len = p.get(i,1)
+    adv_type = p.get(i+1,1)
+    adv_data = p[i+2..i+adv_len]
+    if adv_type == 0xFF
+      var last_data = last_message[value['mac']]
+      if adv_data == last_data
+        return 0
+      else
+        last_message[value['mac']] = adv_data
+      end
+      var output_map = {}
+      output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
+      output_map['alias'] = this_device['alias']
+      output_map['mac'] = value['mac']
+      output_map['via_device'] = device_topic
+      output_map['RSSI'] = value['RSSI']
+      if this_device['via_pubs']
+        output_map['Time_via_' + device_topic] = output_map['Time']
+        output_map['RSSI_via_' + device_topic] = output_map['RSSI']
+      end
+      var basenum = (bytes('00') + adv_data[3..5]).get(0,-4)
+      if basenum >= 0x800000
+        output_map['Temperature'] = (0x800000 - basenum)/10000.0
+        output_map['Humidity'] = ((basenum - 0x800000) % 1000)/10.0
+      else
+        output_map['Temperature'] = basenum/10000.0
+        output_map['Humidity'] = (basenum % 1000)/10.0
+      end
+      output_map['Battery'] = adv_data.get(6,1)
+      output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'], 2)
+      var this_topic = base_topic + '/' + this_device['alias']
+      tasmota.publish(this_topic, json.dump(output_map), sensor_retain)
+      if publish_attributes
+        for output_key:output_map.keys()
+          tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), sensor_retain)
+        end
+      end
+    end
+    i = i + adv_len + 1
+  end
+end
+
+# ATC or pvvx
+def handle_ATCpvvx(value, trigger, msg)
+  var this_device = device_config[value['mac']]
+  var p = bytes(value['p'])
+  var i = 0
+  var adv_len = 0
+  var adv_data = bytes('')
+  var adv_type = 0
   while i < size(p)
     adv_len = p.get(i,1)
     adv_type = p.get(i+1,1)
     adv_data = p[i+2..i+adv_len]
     if adv_type == 0x16 # Service Data 16-bit UUID, used by pvvx and ATC advert
       if adv_data[0..1] == bytes('1A18') # little endian of 0x181A
-        # todo: don't readvert if only thing new is the counter
-        var last_data = bytes('')
-        try
-          last_data = last_message[value['mac']]
-        except 'key_error'
-          last_data = bytes('')
+        var last_data = last_message[value['mac']]
+        if (size(last_data) == 18) && (adv_len == 18)  # use this to ignore re-processing of "same data, new counter"
+          last_data[15] = adv_data[15]
         end
         if adv_data == last_data
           return 0
@@ -144,18 +142,21 @@ def handle_ATCpvvx(value, trigger, msg)
         end
         var output_map = {}
         output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
-        output_map['alias'] = device_map[value['mac']]['alias']
+        output_map['alias'] = this_device['alias']
         output_map['mac'] = value['mac']
         output_map['via_device'] = device_topic
         output_map['RSSI'] = value['RSSI']
+        if this_device['via_pubs']
+          output_map['Time_via_' + device_topic] = output_map['Time']
+          output_map['RSSI_via_' + device_topic] = output_map['RSSI']
+        end
         if adv_len == 16
           output_map['Temperature'] = adv_data.geti(8,-2)/10.0
           output_map['Humidity'] = adv_data.get(10,1)
           output_map['Battery'] = adv_data.get(11,1)
           output_map['Battery_Voltage'] = adv_data.get(12,-2)/1000.0
         elif adv_len == 18
-            is_pvvx = true
-            if device_map[value['mac']]['discovery']
+            if this_device['discovery']
               if !done_extra_discovery[value['mac']]
                 publish_binary_sensor_discovery(value['mac'], 'GPIO_PA6', 'none')
                 publish_binary_sensor_discovery(value['mac'], 'GPIO_PA5', 'none')
@@ -191,9 +192,8 @@ def handle_ATCpvvx(value, trigger, msg)
               output_map['Triggered_by_Humidity'] = 'OFF'
             end
         end
-        output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'])
-        var this_topic = base_topic + '/' + device_map[value['mac']]['alias']
-        # todo: additional discovery for pvvx flag data
+        output_map['DewPoint'] = get_dewpoint(output_map['Temperature'], output_map['Humidity'], 2)
+        var this_topic = base_topic + '/' + this_device['alias']
         tasmota.publish(this_topic, json.dump(output_map), sensor_retain)
         if publish_attributes
           for output_key:output_map.keys()
@@ -208,8 +208,9 @@ end
 
 # Register Aliases with Tasmota and Register Handle Functions, do HA MQTT Discovery
 var mac_to_handle = {}
-for mac:device_map.keys()
-    var item = device_map[mac]
+for mac:device_config.keys()
+    var item = device_config[mac]
+    last_message[mac] = bytes('')
     tasmota.cmd(string.format('BLEAlias %s=%s', mac, item['alias']))
     if item['model'] == 'GVH5075'
       mac_to_handle[mac] = handle_GVH5075
