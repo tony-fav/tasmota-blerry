@@ -92,7 +92,7 @@ def handle_GVH5075(value, trigger, msg)
       adv_len = p.get(i,1)
       adv_type = p.get(i+1,1)
       adv_data = p[i+2..i+adv_len]
-      if adv_type == 0xFF
+      if (adv_type == 0xFF) && (adv_len == 9)
         var last_data = this_device['last_p']
         if adv_data == last_data
           return 0
