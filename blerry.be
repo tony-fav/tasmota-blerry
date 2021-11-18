@@ -261,10 +261,13 @@ def handle_IBSTH2(value, trigger, msg)
         else
           device_config[value['mac']]['last_p'] = adv_data
         end
+        var has_humidity = (adv_data.get(2,2) != 0)
         if this_device['discovery'] && !this_device['done_disc']
           publish_sensor_discovery(value['mac'], 'Temperature', 'temperature', '°C')
-          publish_sensor_discovery(value['mac'], 'Humidity', 'humidity', '%')
-          publish_sensor_discovery(value['mac'], 'DewPoint', 'temperature', '°C')
+          if has_humidity
+            publish_sensor_discovery(value['mac'], 'Humidity', 'humidity', '%')
+            publish_sensor_discovery(value['mac'], 'DewPoint', 'temperature', '°C')
+          end
           publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
           publish_sensor_discovery(value['mac'], 'RSSI', 'signal_strength', 'dB')
           device_config[value['mac']]['done_disc'] = true
@@ -280,11 +283,13 @@ def handle_IBSTH2(value, trigger, msg)
           output_map['RSSI_via_' + device_topic] = output_map['RSSI']
         end
         output_map['Temperature'] = adv_data.geti(0,2)/100.0
-        output_map['Humidity'] = adv_data.get(2,2)/100.0
         output_map['Battery'] = adv_data.get(7,1)
-        output_map['DewPoint'] = round(get_dewpoint(output_map['Temperature'], output_map['Humidity']), this_device['temp_precision'])
+        if has_humidity
+          output_map['Humidity'] = adv_data.get(2,2)/100.0
+          output_map['DewPoint'] = round(get_dewpoint(output_map['Temperature'], output_map['Humidity']), this_device['temp_precision'])
+          output_map['Humidity'] = round(output_map['Humidity'], this_device['humi_precision'])
+        end
         output_map['Temperature'] = round(output_map['Temperature'], this_device['temp_precision'])
-        output_map['Humidity'] = round(output_map['Humidity'], this_device['humi_precision'])
         var this_topic = base_topic + '/' + this_device['alias']
         tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
         if this_device['publish_attributes']
