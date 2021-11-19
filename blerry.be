@@ -346,5 +346,6 @@ end
 tasmota.cmd('BLEDetails4')
 def DetailsBLE_callback(value, trigger, msg)
     device_config[value['mac']]['handle'](value, trigger, msg)
+    tasmota.gc()
 end
 tasmota.add_rule(details_trigger, DetailsBLE_callback)
