@@ -5,6 +5,13 @@ var user_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH507
                    '494208DDDDDD': {'alias': 'trial_inkbird', 'model': 'IBSTH2', 'discovery': true}}
 var base_topic = 'tele/tasmota_blerry'
 
+# ------ ADVANCED  CONFIG ------
+var old_details = false # Set to true if Tasmota build is before https://github.com/arendst/Tasmota/pull/13671 was merged
+var override_config = {} # default_config is applied first, user_config is applied next to specific macs, then override_config overwrites anything entered.
+                         # useful for if you wanted user_config the same on many devices except only send discovery on 1 device. have discovery off in user_config but add here.
+# var override_config = {'temp_precision': 3,
+#                        'humi_precision': 2}
+
 # ----------- IMPORTS ----------
 import math
 import string
@@ -14,15 +21,14 @@ import json
 var default_config = {'model': 'ATCpvvx',            # Must match 'ATCpvvx', 'GVH5075', or 'IBSTH2'
                       'discovery': false,            # HA MQTT Discovery
                       'use_lwt': false,              # use receiving device's LWT as LWT for BLE device
-                      'via_pubs': true,              # publish attributes like "Time_via_%topic%" and "RSSI_via_%topic%"
+                      'via_pubs': false,             # publish attributes like "Time_via_%topic%" and "RSSI_via_%topic%" (default false to reduce workload on ESP)
                       'sensor_retain': false,        # retain publication of data
-                      'publish_attributes': true,    # publish attributes to individual topics in addition to JSON payload
+                      'publish_attributes': false,   # publish attributes to individual topics in addition to JSON payload (default false to reduce workload on ESP)
                       'temp_precision': 2,           # digits of precision for temperature
                       'humi_precision': 1,           # digits of precision for humidity
                       'last_p': bytes(''),           # DO NOT CHANGE
                       'done_disc': false,            # DO NOT CHANGE
                       'done_extra_disc': false}      # DO NOT CHANGE
-var device_config = {}
 
 # ----------- HELPERS ----------
 def round(x, p)
@@ -34,6 +40,11 @@ def get_dewpoint(t, h) # temp, humidity, precision
 end
 
 # ----------- BLERRY -----------
+var device_config = {}
+var details_trigger = 'DetailsBLE'
+if old_details
+  details_trigger = 'details'
+end
 var discovery_retain = true # only false when testing
 
 # Get this Device's topic for VIA_DEVICE publish
@@ -81,7 +92,7 @@ end
 
 # GVH5075: Govee Temp and Humidity Sensor
 def handle_GVH5075(value, trigger, msg)
-  if trigger == 'DetailsBLE'
+  if trigger == details_trigger
     var this_device = device_config[value['mac']]
     var p = bytes(value['p'])
     var i = 0
@@ -144,7 +155,7 @@ end
 
 # ATC or pvvx
 def handle_ATCpvvx(value, trigger, msg)
-  if trigger == 'DetailsBLE'
+  if trigger == details_trigger
     var this_device = device_config[value['mac']]
     var p = bytes(value['p'])
     var i = 0
@@ -243,7 +254,7 @@ def handle_ATCpvvx(value, trigger, msg)
 end
 
 def handle_IBSTH2(value, trigger, msg)
-  if trigger == 'DetailsBLE'
+  if trigger == details_trigger
     var this_device = device_config[value['mac']]
     var p = bytes(value['p'])
     var i = 0
@@ -320,6 +331,9 @@ for mac:user_config.keys()
   for item:user_config[mac].keys()
     device_config[mac][item] = user_config[mac][item]
   end
+  for item:override_config.keys()
+    device_config[mac][item] = override_config[item]
+  end
   device_config[mac]['handle'] = device_handles[device_config[mac]['model']]
   tasmota.cmd(string.format('BLEAlias %s=%s', mac, device_config[mac]['alias']))
   setup_active = setup_active || require_active[device_config[mac]['model']]
@@ -333,5 +347,4 @@ tasmota.cmd('BLEDetails4')
 def DetailsBLE_callback(value, trigger, msg)
     device_config[value['mac']]['handle'](value, trigger, msg)
 end
-tasmota.add_rule("DetailsBLE", DetailsBLE_callback) # https://github.com/arendst/Tasmota/pull/13671 was merged
-# tasmota.add_rule("details", DetailsBLE_callback) # DetailsBLE if https://github.com/arendst/Tasmota/pull/13671 is accepted
+tasmota.add_rule(details_trigger, DetailsBLE_callback)
