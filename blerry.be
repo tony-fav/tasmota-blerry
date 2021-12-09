@@ -38,6 +38,25 @@ def get_dewpoint(t, h) # temp, humidity, precision
   var gamma = math.log(h / 100.0) + 17.62 * t / (243.5 + t)
   return (243.5 * gamma / (17.62 - gamma))
 end
+def string_replace(x, y, r)
+  var z = x[0..]
+  var n = size(y)
+  var m = size(r)
+  var k = 0
+  while k < size(z)
+    var j = string.find(z, y, k)
+    if j < 0
+      break
+    end
+    if j > 0
+      z = z[0..j-1] + r + z[j+n..]
+    else
+      z = r + z[j+n..]
+    end
+    k = j+m
+  end
+  return z
+end
 
 # ----------- BLERRY -----------
 var device_config = {}
@@ -47,25 +66,20 @@ if old_details
 end
 var discovery_retain = true # only false when testing
 
-# Get this Device's topic for VIA_DEVICE publish
-var device_topic = ''
-def Status_callback(value, trigger, msg)
-  device_topic = value['Topic']
-end
-tasmota.add_rule('Status', Status_callback)
-tasmota.cmd('Status')
-var hostname = ''
-def Status5_callback(value, trigger, msg)
-  hostname = value['Hostname']
-end
-tasmota.add_rule('StatusNet', Status5_callback)
-tasmota.cmd('Status 5')
+# Get this device's topic info
+var device_topic = tasmota.cmd('Status')['Status']['Topic']
+var cmnd_prefix = tasmota.cmd('Prefix1')['Prefix1']
+var stat_prefix = tasmota.cmd('Prefix2')['Prefix2']
+var tele_prefix = tasmota.cmd('Prefix3')['Prefix3']
+var full_topic_f = tasmota.cmd('FullTopic')['FullTopic']
+var hostname = tasmota.cmd('Status 5')['StatusNET']['Hostname']
+var device_tele_topic = string_replace(string_replace(full_topic_f, '%prefix%', tele_prefix), '%topic%', device_topic)
 
 def publish_sensor_discovery(mac, prop, dclass, unitm)
   var item = device_config[mac]
   var prefix = '{'
   if item['use_lwt']
-    prefix = prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
+    prefix = prefix + string.format('"avty_t\": \"%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_tele_topic)
   else
     prefix = prefix + '\"avty\": [],'
   end
@@ -78,7 +92,7 @@ def publish_binary_sensor_discovery(mac, prop, dclass)
   var item = device_config[mac]
   var prefix = '{'
   if item['use_lwt']
-    prefix = prefix + string.format('"avty_t\": \"tele/%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_topic)
+    prefix = prefix + string.format('"avty_t\": \"%s/LWT\",\"pl_avail\": \"Online\",\"pl_not_avail\": \"Offline\",', device_tele_topic)
   else
     prefix = prefix + '\"avty\": [],'
   end
