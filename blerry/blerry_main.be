@@ -46,6 +46,9 @@ def string_replace(x, y, r)
 end
 
 # ----------- BLERRY -----------
+if base_topic[-1] == '/' # allow / at the end but remove it here
+  base_topic = base_topic[0..-2]
+end
 var device_config = {}
 var details_trigger = 'DetailsBLE'
 if old_details
@@ -61,6 +64,9 @@ var tele_prefix = tasmota.cmd('Prefix3')['Prefix3']
 var full_topic_f = tasmota.cmd('FullTopic')['FullTopic']
 var hostname = tasmota.cmd('Status 5')['StatusNET']['Hostname']
 var device_tele_topic = string_replace(string_replace(full_topic_f, '%prefix%', tele_prefix), '%topic%', device_topic)
+if device_tele_topic[-1] == '/' # allow / at the end but remove it here
+  device_tele_topic = device_tele_topic[0..-2]
+end
 
 def publish_sensor_discovery(mac, prop, dclass, unitm)
   var item = device_config[mac]
