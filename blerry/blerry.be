@@ -29,7 +29,7 @@ var base_topic = 'tele/tasmota_blerry' # where to publish the sensor data
 # override_config map (only config options)
 #   all options from user_config except alias
 var override_config = {}
-# var override_config = {'false': true}
+# var override_config = {'discovery': true}
 # var override_config = {'temp_precision': 3,
 #                        'humi_precision': 2}
 
