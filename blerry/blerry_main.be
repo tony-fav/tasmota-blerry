@@ -4,19 +4,6 @@ import math
 import string
 import json
 
-# ----------- DEFAULT ----------
-var default_config = {'model': 'ATCpvvx',            # Must match 'ATCpvvx', 'GVH5075', or 'IBSTH2'
-                      'discovery': false,            # HA MQTT Discovery
-                      'use_lwt': false,              # use receiving device's LWT as LWT for BLE device
-                      'via_pubs': false,             # publish attributes like "Time_via_%topic%" and "RSSI_via_%topic%" (default false to reduce workload on ESP)
-                      'sensor_retain': false,        # retain publication of data
-                      'publish_attributes': false,   # publish attributes to individual topics in addition to JSON payload (default false to reduce workload on ESP)
-                      'temp_precision': 2,           # digits of precision for temperature
-                      'humi_precision': 1,           # digits of precision for humidity
-                      'last_p': bytes(''),           # DO NOT CHANGE
-                      'done_disc': false,            # DO NOT CHANGE
-                      'done_extra_disc': false}      # DO NOT CHANGE
-
 # ----------- HELPERS ----------
 def round(x, p)
   return math.ceil(math.pow(10.0, p)*x)/math.pow(10.0, p)
@@ -54,7 +41,6 @@ var details_trigger = 'DetailsBLE'
 if old_details
   details_trigger = 'details'
 end
-var discovery_retain = true # only false when testing
 
 # Get this device's topic info
 var device_topic = tasmota.cmd('Status')['Status']['Topic']
@@ -100,12 +86,21 @@ end
 # Build complete device config maps
 for mac:user_config.keys()
   device_config[mac] = {}
+  
+  # copy in defaults and data storage items first
   for item:default_config.keys()
     device_config[mac][item] = default_config[item]
   end
+  device_config['last_p'] = bytes('')
+  device_config['done_disc'] = false
+  device_config['done_extra_disc': false]
+
+  # override with device specific config
   for item:user_config[mac].keys()
     device_config[mac][item] = user_config[mac][item]
   end
+
+  # override with global override
   for item:override_config.keys()
     device_config[mac][item] = override_config[item]
   end
