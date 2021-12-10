@@ -93,7 +93,7 @@ for mac:user_config.keys()
   end
   device_config['last_p'] = bytes('')
   device_config['done_disc'] = false
-  device_config['done_extra_disc': false]
+  device_config['done_extra_disc'] = false
 
   # override with device specific config
   for item:user_config[mac].keys()
