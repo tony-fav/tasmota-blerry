@@ -10,6 +10,14 @@ To use:
 Rule1 ON System#Boot DO br load('blerry.be') ENDON
 ```
 
-# If you like my project
+## Intro Video by @digiblur (Thanks Travis!)
+
+[![video thumbnail](http://img.youtube.com/vi/oJmDRkKnzFc/0.jpg)](http://www.youtube.com/watch?v=oJmDRkKnzFc "Tasmota ESP32 Bluetooth Blerry How To - Temperatures into Home Assistant")
+
+## Contributing
+
+Feel free to fork and PR any new drivers, better code, etc.!
+
+## If you like my project
 
 <a href="https://www.buymeacoffee.com/tonyfav" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
