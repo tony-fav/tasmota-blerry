@@ -91,9 +91,9 @@ for mac:user_config.keys()
   for item:default_config.keys()
     device_config[mac][item] = default_config[item]
   end
-  device_config['last_p'] = bytes('')
-  device_config['done_disc'] = false
-  device_config['done_extra_disc'] = false
+  device_config[mac]['last_p'] = bytes('')
+  device_config[mac]['done_disc'] = false
+  device_config[mac]['done_extra_disc'] = false
 
   # override with device specific config
   for item:user_config[mac].keys()
