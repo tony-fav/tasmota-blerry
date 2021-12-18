@@ -13,12 +13,12 @@ def handle_WoSensorTH(value, trigger, msg)
       adv_type = p.get(i+1,1)
       adv_data = p[i+2..i+adv_len]
       if (adv_type == 0x16) && (adv_len == 9) && (adv_data[0..1] == bytes('000D'))
-        # var last_data = this_device['last_p']
-        # if adv_data == last_data
-        #   return 0
-        # else
-        #   device_config[value['mac']]['last_p'] = adv_data
-        # end
+        var last_data = this_device['last_p']
+        if adv_data == last_data
+          return 0
+        else
+          device_config[value['mac']]['last_p'] = adv_data
+        end
         if this_device['discovery'] && !this_device['done_disc']
           publish_sensor_discovery(value['mac'], 'Temperature', 'temperature', '°C')
           publish_sensor_discovery(value['mac'], 'Humidity', 'humidity', '%')
