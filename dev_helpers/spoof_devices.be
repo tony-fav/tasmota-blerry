@@ -8,7 +8,7 @@ fake_ble.every_second = def ()
     # tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"494207BBBBBB\",\"a\":\"inkbirdth_active\",\"RSSI\":-83,\"p\":\"0201060302F0FF04097370730AFF3E09F11000526A6408\"}}','test')
     # tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"494207CCCCCC\",\"a\":\"inkbirdth_active_noH\",\"RSSI\":-83,\"p\":\"0201060302F0FF04097470730AFF5CFA000000C4D54908\"}}','test')
     # tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"D4E4A3AAAAAA\",\"a\":\"sbot_temp_passive\",\"RSSI\":-75,\"p\":\"02010609FF5900D4E4A3AAAAAA\"}}','test')
-    tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"D4E4A3BBBBBB/1\",\"a\":\"sbot_temp_active\",\"RSSI\":-83,\"p\":\"02010609FF5900D4E4A3BBBBBB11071BC5D5A50200B89FE6114D22000DA2CB0916000D5410640511BC\",\"0x0d00\":\"5410640511BC\"}}','test')
+    tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"D4E4A3BBBBBB/1\",\"a\":\"sbot_temp_active\",\"RSSI\":-83,\"p\":\"02010609FF5900D4E4A3BBBBBB11071BC5D5A50200B89FE6114D22000DA2CB0916000D5410640411BC\",\"0x0d00\":\"5410640511BC\"}}','test')
     fake_print_time = tasmota.millis(5000)
   end
 end
