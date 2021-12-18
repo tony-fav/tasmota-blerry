@@ -18,12 +18,8 @@
 #   publish attributes  OPTIONAL (default = false)      publish individual topics for each attribute in addition to the JSON payload
 #   temp_precision      OPTIONAL (default = 2, int)     digits of precision for temperature
 #   humi_precision      OPTIONAL (default = 1, int)     digits of precision for humidity
-var user_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true},
-                   'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'via_pubs': false},
-                   'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true},
-                   '494208DDDDDD': {'alias': 'trial_inkbird', 'model': 'IBSTH2', 'discovery': true},
-                   'D4E4A3BBBBBB/1': {'alias': 'dev_switchbot', 'model': 'WoSensorTH'}}
-var base_topic = 'tele/tasmota_blerry' # where to publish the sensor data
+var user_config = {'D4E4A3BBBBBB/1': {'alias': 'dev_switchbot', 'model': 'WoSensorTH'}}
+var base_topic = 'dev/log' # where to publish the sensor data
 
 
 # --- GLOBAL OVERRIDE CONFIG ---

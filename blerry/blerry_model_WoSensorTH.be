@@ -1,5 +1,6 @@
-# GVH5075: Govee Temp and Humidity Sensor
-def handle_GVH5075(value, trigger, msg)
+# Switchbot Temp and Humidity Sensor
+# https://github.com/OpenWonderLabs/python-host/wiki/Meter-BLE-open-API#new-broadcast-message
+def handle_WoSensorTH(value, trigger, msg)
   if trigger == details_trigger
     var this_device = device_config[value['mac']]
     var p = bytes(value['p'])
@@ -11,7 +12,7 @@ def handle_GVH5075(value, trigger, msg)
       adv_len = p.get(i,1)
       adv_type = p.get(i+1,1)
       adv_data = p[i+2..i+adv_len]
-      if (adv_type == 0xFF) && (adv_len == 9)
+      if (adv_type == 0x16) && (adv_len == 9) && (adv_data[0..1] == bytes('000D'))
         var last_data = this_device['last_p']
         if adv_data == last_data
           return 0
@@ -36,15 +37,12 @@ def handle_GVH5075(value, trigger, msg)
           output_map['Time_via_' + device_topic] = output_map['Time']
           output_map['RSSI_via_' + device_topic] = output_map['RSSI']
         end
-        var basenum = (bytes('00') + adv_data[3..5]).get(0,-4)
-        if basenum >= 0x800000
-          output_map['Temperature'] = (0x800000 - basenum)/10000.0
-          output_map['Humidity'] = ((basenum - 0x800000) % 1000)/10.0
-        else
-          output_map['Temperature'] = basenum/10000.0
-          output_map['Humidity'] = (basenum % 1000)/10.0
+        output_map['Battery'] = adv_data[4] & 0x7F
+        output_map['Humidity'] = adv_data[7] & 0x7F
+        output_map['Temperature'] = (adv_data[6] & 0x7F) + (adv_data[5] & 0x0F)/10.0
+        if (adv_data[6] & 0x80) == 0
+          output_map['Temperature'] = -1*output_map['Temperature']
         end
-        output_map['Battery'] = adv_data.get(6,1)
         output_map['DewPoint'] = round(get_dewpoint(output_map['Temperature'], output_map['Humidity']), this_device['temp_precision'])
         output_map['Temperature'] = round(output_map['Temperature'], this_device['temp_precision'])
         output_map['Humidity'] = round(output_map['Humidity'], this_device['humi_precision'])
@@ -62,5 +60,5 @@ def handle_GVH5075(value, trigger, msg)
 end
 
 # map function into handles array
-device_handles['GVH5075'] = handle_GVH5075
-require_active['GVH5075'] = false
+device_handles['WoSensorTH'] = handle_WoSensorTH
+require_active['WoSensorTH'] = true
