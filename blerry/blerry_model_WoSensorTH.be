@@ -13,51 +13,41 @@ def handle_WoSensorTH(value, trigger, msg)
       adv_type = p.get(i+1,1)
       adv_data = p[i+2..i+adv_len]
       if (adv_type == 0x16) && (adv_len == 9) && (adv_data[0..1] == bytes('000D'))
-        print('WoSensorTH Data: ', adv_data[2..])
-        print('Device type should be 0x54', (adv_data[2] & 0x7F) == 0x54)
-        print('battery', (adv_data[4] & 0x7F))
-        print('temp dec', (adv_data[5] & 0x0F))
-        print('temp sign', (adv_data[6] & 0x80) >> 7)
-        print('temp int', (adv_data[6] & 0x7F))
-        print('temp scale', (adv_data[7] & 0x80) >> 7)
-        print('humi int', (adv_data[7] & 0x7F))
+        # var last_data = this_device['last_p']
+        # if adv_data == last_data
+        #   return 0
+        # else
+        #   device_config[value['mac']]['last_p'] = adv_data
+        # end
+        if this_device['discovery'] && !this_device['done_disc']
+          publish_sensor_discovery(value['mac'], 'Temperature', 'temperature', '°C')
+          publish_sensor_discovery(value['mac'], 'Humidity', 'humidity', '%')
+          publish_sensor_discovery(value['mac'], 'DewPoint', 'temperature', '°C')
+          publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
+          publish_sensor_discovery(value['mac'], 'RSSI', 'signal_strength', 'dB')
+          device_config[value['mac']]['done_disc'] = true
+        end
+        var output_map = {}
+        output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
+        output_map['alias'] = this_device['alias']
+        output_map['mac'] = value['mac']
+        output_map['via_device'] = device_topic
+        output_map['RSSI'] = value['RSSI']
+        if this_device['via_pubs']
+          output_map['Time_via_' + device_topic] = output_map['Time']
+          output_map['RSSI_via_' + device_topic] = output_map['RSSI']
+        end
+        output_map['Battery'] = adv_data[4] & 0x7F
+        output_map['Humidity'] = adv_data[7] & 0x7F
+        output_map['Temperature'] = (adv_data[6] & 0x7F) + (adv_data[5] & 0x0F)/10.0
+        if (adv_data[6] & 0x80) == 0
+          output_map['Temperature'] = -1*output_map['Temperature']
+        end
+        output_map['DewPoint'] = round(get_dewpoint(output_map['Temperature'], output_map['Humidity']), this_device['temp_precision'])
+        output_map['Temperature'] = round(output_map['Temperature'], this_device['temp_precision'])
+        output_map['Humidity'] = round(output_map['Humidity'], this_device['humi_precision'])
+        print(json.dump(output_map))
       end
-      #   var last_data = this_device['last_p']
-      #   if adv_data == last_data
-      #     return 0
-      #   else
-      #     device_config[value['mac']]['last_p'] = adv_data
-      #   end
-      #   if this_device['discovery'] && !this_device['done_disc']
-      #     publish_sensor_discovery(value['mac'], 'Temperature', 'temperature', '°C')
-      #     publish_sensor_discovery(value['mac'], 'Humidity', 'humidity', '%')
-      #     publish_sensor_discovery(value['mac'], 'DewPoint', 'temperature', '°C')
-      #     publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
-      #     publish_sensor_discovery(value['mac'], 'RSSI', 'signal_strength', 'dB')
-      #     device_config[value['mac']]['done_disc'] = true
-      #   end
-      #   var output_map = {}
-      #   output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
-      #   output_map['alias'] = this_device['alias']
-      #   output_map['mac'] = value['mac']
-      #   output_map['via_device'] = device_topic
-      #   output_map['RSSI'] = value['RSSI']
-      #   if this_device['via_pubs']
-      #     output_map['Time_via_' + device_topic] = output_map['Time']
-      #     output_map['RSSI_via_' + device_topic] = output_map['RSSI']
-      #   end
-      #   var basenum = (bytes('00') + adv_data[3..5]).get(0,-4)
-      #   if basenum >= 0x800000
-      #     output_map['Temperature'] = (0x800000 - basenum)/10000.0
-      #     output_map['Humidity'] = ((basenum - 0x800000) % 1000)/10.0
-      #   else
-      #     output_map['Temperature'] = basenum/10000.0
-      #     output_map['Humidity'] = (basenum % 1000)/10.0
-      #   end
-      #   output_map['Battery'] = adv_data.get(6,1)
-      #   output_map['DewPoint'] = round(get_dewpoint(output_map['Temperature'], output_map['Humidity']), this_device['temp_precision'])
-      #   output_map['Temperature'] = round(output_map['Temperature'], this_device['temp_precision'])
-      #   output_map['Humidity'] = round(output_map['Humidity'], this_device['humi_precision'])
       #   var this_topic = base_topic + '/' + this_device['alias']
       #   tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
       #   if this_device['publish_attributes']
