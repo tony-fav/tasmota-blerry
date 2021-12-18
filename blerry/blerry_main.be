@@ -107,12 +107,13 @@ for mac:user_config.keys()
 end
 
 # Load model handle functions only if used
-var model_drivers = {'GVH5075': 'blerry_model_GVH5075.be',
-                     'ATCpvvx': 'blerry_model_ATCpvvx.be',
-                     'ATC'    : 'blerry_model_ATCpvvx.be',
-                     'pvvx'   : 'blerry_model_ATCpvvx.be',
-                     'IBSTH1' : 'blerry_model_IBSTH2.be',
-                     'IBSTH2' : 'blerry_model_IBSTH2.be'}
+var model_drivers = {'GVH5075'   : 'blerry_model_GVH5075.be',
+                     'ATCpvvx'   : 'blerry_model_ATCpvvx.be',
+                     'ATC'       : 'blerry_model_ATCpvvx.be',
+                     'pvvx'      : 'blerry_model_ATCpvvx.be',
+                     'IBSTH1'    : 'blerry_model_IBSTH2.be',
+                     'IBSTH2'    : 'blerry_model_IBSTH2.be',
+                     'WoSensorTH': 'blerry_model_WoSensorTH.be'}
 var models = {}
 for mac:user_config.keys()
   models[model_drivers[device_config[mac]['model']]] = true
@@ -139,6 +140,5 @@ end
 tasmota.cmd('BLEDetails4')
 def DetailsBLE_callback(value, trigger, msg)
   device_config[value['mac']]['handle'](value, trigger, msg)
-  tasmota.gc()
 end
 tasmota.add_rule(details_trigger, DetailsBLE_callback)
