@@ -46,16 +46,14 @@ def handle_WoSensorTH(value, trigger, msg)
         output_map['DewPoint'] = round(get_dewpoint(output_map['Temperature'], output_map['Humidity']), this_device['temp_precision'])
         output_map['Temperature'] = round(output_map['Temperature'], this_device['temp_precision'])
         output_map['Humidity'] = round(output_map['Humidity'], this_device['humi_precision'])
-        print(json.dump(output_map))
+        var this_topic = base_topic + '/' + this_device['alias']
+        tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
+        if this_device['publish_attributes']
+          for output_key:output_map.keys()
+            tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), this_device['sensor_retain'])
+          end
+        end
       end
-      #   var this_topic = base_topic + '/' + this_device['alias']
-      #   tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
-      #   if this_device['publish_attributes']
-      #     for output_key:output_map.keys()
-      #       tasmota.publish(this_topic + '/' + output_key, string.format('%s', output_map[output_key]), this_device['sensor_retain'])
-      #     end
-      #   end
-      # end
       i = i + adv_len + 1
     end
   end
