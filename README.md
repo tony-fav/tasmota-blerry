@@ -14,11 +14,12 @@ Rule1 ON System#Boot DO br load('blerry.be') ENDON
 
 | Model String | Mac Example | Description |
 | ------------ | ----------- | ----------- |
-| `'ATCpvvx'` | `'A4C138CCCCCC'` | Xiaomi sensors on ATC or pvvx firmware with "Custom" advertisement  |
-| `'GVH5075'` | `'494207AAAAAA'` | Govee H5075. Should work for H5072 as well (untested). |
-| `'IBSTH2'` | `'494208DDDDDD'` | Inkbird IBSTH2 with and without humidity. Should work for IBSTH1 as well (untested). |
-| `'WoSensorTH'` | `'D4E4A3BBBBBB/1'` | Switchbot temperature and humidity sensor. |
-| `'WoContact'` | `'D4BD28AAAAAA/1'` | Switchbot contact sensor (also has motion, lux, and a button). |
+| `'ATCpvvx'` | `'A4C138XXXXXX'` | Xiaomi sensors on ATC or pvvx firmware with "Custom" advertisement  |
+| `'GVH5075'` | `'494207XXXXXX'` | Govee H5075. Should work for H5072 as well (untested). |
+| `'IBSTH2'` | `'494208XXXXXX'` | Inkbird IBSTH2 with and without humidity. Should work for IBSTH1 as well (untested). |
+| `'WoSensorTH'` | `'D4E4A3XXXXXX/1'` | Switchbot temperature and humidity sensor. |
+| `'WoContact'` | `'D4BD28XXXXXX/1'` | Switchbot contact sensor (also has motion, binary lux, and a button). |
+| `'WoPresence'` | `'FC7CADXXXXXX/1'` | Switchbot motion sensor (also has binary lux). |
 
 
 ## Intro Video by @digiblur (Thanks Travis!)
