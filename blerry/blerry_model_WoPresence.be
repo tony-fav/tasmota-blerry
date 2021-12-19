@@ -1,6 +1,6 @@
-# Switchbot Contact Sensor
+# Switchbot Motion Sensor
 # https://github.com/OpenWonderLabs/python-host/wiki/Motion-Sensor-BLE-open-API
-# Tested on Contact Sensor firmware v1.3
+# Tested on Motion Sensor firmware v1.3
 def handle_WoPresence(value, trigger, msg)
   if trigger == details_trigger
     var this_device = device_config[value['mac']]
