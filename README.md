@@ -18,6 +18,7 @@ Rule1 ON System#Boot DO br load('blerry.be') ENDON
 | `'GVH5075'` | `'494207AAAAAA'` | Govee H5075. Should work for H5072 as well (untested). |
 | `'IBSTH2'` | `'494208DDDDDD'` | Inkbird IBSTH2 with and without humidity. Should work for IBSTH1 as well (untested). |
 | `'WoSensorTH'` | `'D4E4A3BBBBBB/1'` | Switchbot temperature and humidity sensor. |
+| `'WoContact'` | `'D4BD28AAAAAA/1'` | Switchbot contact sensor (also has motion, lux, and a button). |
 
 
 ## Intro Video by @digiblur (Thanks Travis!)
