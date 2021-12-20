@@ -115,7 +115,8 @@ var model_drivers = {'GVH5075'   : 'blerry_model_GVH5075.be',
                      'IBSTH2'    : 'blerry_model_IBSTH2.be',
                      'WoSensorTH': 'blerry_model_WoSensorTH.be',
                      'WoContact' : 'blerry_model_WoContact.be',
-                     'WoPresence': 'blerry_model_WoPresence.be'}
+                     'WoPresence': 'blerry_model_WoPresence.be',
+                     'WoHand'    : 'blerry_model_WoHand.be'}
 var models = {}
 for mac:user_config.keys()
   models[model_drivers[device_config[mac]['model']]] = true

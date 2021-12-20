@@ -24,7 +24,8 @@ var user_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH507
                    '494208DDDDDD': {'alias': 'trial_inkbird', 'model': 'IBSTH2', 'discovery': true},
                    'D4E4A3BBBBBB/1': {'alias': 'sbot_TH', 'model': 'WoSensorTH'},
                    'D4BD28AAAAAA/1': {'alias': 'sbot_contact', 'model': 'WoContact'},
-                   'FC7CADCCCCCC/1': {'alias': 'sbot_motion', 'model': 'WoPresence'}}
+                   'FC7CADCCCCCC/1': {'alias': 'sbot_motion', 'model': 'WoPresence'},
+                   'D81E7ADDDDDD/1': {'alias': 'sbot_bot', 'model': 'WoHand'}}
 var base_topic = 'tele/tasmota_blerry' # where to publish the sensor data
 
 
