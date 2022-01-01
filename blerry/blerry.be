@@ -21,6 +21,7 @@
 var user_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true},
                    'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'via_pubs': false},
                    'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true},
+                   'A4C138CCCCCC': {'alias': 'ATC_on_milike', 'model': 'ATCmi'},
                    '494208DDDDDD': {'alias': 'trial_inkbird', 'model': 'IBSTH2', 'discovery': true},
                    'D4E4A3BBBBBB/1': {'alias': 'sbot_TH', 'model': 'WoSensorTH'},
                    'D4BD28AAAAAA/1': {'alias': 'sbot_contact', 'model': 'WoContact'},
