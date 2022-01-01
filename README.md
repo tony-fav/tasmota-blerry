@@ -14,7 +14,8 @@ Rule1 ON System#Boot DO br load('blerry.be') ENDON
 
 | Model String | Mac Example | Description |
 | ------------ | ----------- | ----------- |
-| `'ATCpvvx'` | `'A4C138XXXXXX'` | Xiaomi sensors on ATC or pvvx firmware with "Custom" advertisement  |
+| `'ATCpvvx'` | `'A4C138XXXXXX'` | Xiaomi sensors on ATC or pvvx firmware with "ATC1441" or "Custom" advertisement  |
+| `'ATCmi'` | `'A4C138XXXXXX'` | Xiaomi sensors on ATC or pvvx firmware with "Mi" advertisement  |
 | `'GVH5075'` | `'494207XXXXXX'` | Govee H5075. Should work for H5072 as well (untested). |
 | `'IBSTH2'` | `'494208XXXXXX'` | Inkbird IBSTH2 with and without humidity. Should work for IBSTH1 as well (untested). |
 | `'WoSensorTH'` | `'D4E4A3XXXXXX/1'` | Switchbot temperature and humidity sensor. |
