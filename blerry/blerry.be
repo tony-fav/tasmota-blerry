@@ -21,6 +21,7 @@
 var user_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true},
                    'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'via_pubs': false},
                    'A4C138XXXXXX': {'alias': 'govee5183meats', 'model': 'GVH5183'},
+                   'D03232XXXXXX/1': {'alias': 'govee5184-4probe-meats', 'model': 'GVH5183'},
                    'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true},
                    'A4C138CCCCCC': {'alias': 'ATC_on_milike', 'model': 'ATCmi'},
                    '494208DDDDDD': {'alias': 'trial_inkbird', 'model': 'IBSTH2', 'discovery': true},
