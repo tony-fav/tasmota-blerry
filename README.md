@@ -31,6 +31,7 @@ If you use HA discovery, devices should appear under MQTT Devices NOT the Tasmot
 | `'ATCmi'` | `'A4C138XXXXXX'` | Xiaomi sensors on ATC or pvvx firmware with "Mi" advertisement  |
 | `'GVH5075'` | `'A4C138XXXXXX'` | Govee H5075. Should work for H5072 as well (untested). |
 | `'GVH5183'` | `'A4C138XXXXXX'` | Govee H5183 single probe meat thermometer. |
+| `'GVH5184'` | `'D03232XXXXXX/1'` | Govee H5184 four probe meat thermometer with display. |
 | `'IBSTH2'` | `'494208XXXXXX'` | Inkbird IBSTH2 with and without humidity. Should work for IBSTH1 as well (untested). |
 | `'WoSensorTH'` | `'D4E4A3XXXXXX/1'` | Switchbot temperature and humidity sensor. |
 | `'WoContact'` | `'D4BD28XXXXXX/1'` | Switchbot contact sensor (also has motion, binary lux, and a button). |
