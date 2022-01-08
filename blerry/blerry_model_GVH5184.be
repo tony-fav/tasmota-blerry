@@ -1,5 +1,5 @@
 # Currently the 5183 code.  The 5184 uses a two line method. See the ATC_MI driver for methodology.
-#
+# Tested as is - and it will pick up data and send.  Formatting is wrong as well but prelimnary works.
 def handle_GVH5184(value, trigger, msg)
   if trigger == details_trigger
     var this_device = device_config[value['mac']]
