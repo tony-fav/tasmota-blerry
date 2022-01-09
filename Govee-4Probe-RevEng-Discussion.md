@@ -12,7 +12,8 @@ Breaking that down:
                51 84
                -- -- <- model number
                      14 FF
-                     -- -- <- separator bytes - all useful data comes after these two static bytes. We will look for this and start counting bytes after that
+                     -- -- <- separator bytes - all useful data comes after these two static bytes. 
+                                                We will look for this and start counting bytes after that
 
 Remaining string to be manipulated:
    36 3E 5D 01 00 01 01 E4 01 06 FF FF FF FF 06 FF FF FF FF
