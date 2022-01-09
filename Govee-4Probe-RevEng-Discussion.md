@@ -6,6 +6,7 @@ The full 'p' string that comes from BLE looks like this:
 
 Breaking that down:
 
+```
 02 01 06 03 03
 -- -- -- -- -- <- static - not useful at this time
 
@@ -14,10 +15,12 @@ Breaking that down:
                      14 FF
                      -- -- <- separator bytes - all useful data comes after these two static bytes. 
                                                 We will look for this and start counting bytes after that
+```
 
 Remaining string to be manipulated:
    36 3E 5D 01 00 01 01 E4 01 06 FF FF FF FF 06 FF FF FF FF
-   
+
+```
    **1  2  3** (Byte Sequence)
    36 3E 5D
    -- -- -- <- Last 3 bytes of MAC ADDRESS
@@ -53,7 +56,7 @@ Remaining string to be manipulated:
                                                       **18 19*  
                                                       FF FF
                                                       -- -- <- Probe2/4 set point for alarm. Same scheme as temp.
-
+```
 
 
 Building on other driver files, the following approach will be used.
