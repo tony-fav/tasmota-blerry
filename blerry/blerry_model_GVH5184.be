@@ -50,7 +50,6 @@ def handle_GVH5184(value, trigger, msg)
           end
           #If the partial data hasn't chnaged - end, otherwise store current value to last
           if this_part_data == last_part_data
-            print('No change')
             return 0
           else
             device_config[value['mac']]['last_p'] = this_full_data
@@ -93,7 +92,6 @@ def handle_GVH5184(value, trigger, msg)
           end
           # Battery is only stored once in list - so set it manually
           output_map['Battery'] = math.ceil(this_full_data[0]/255.0*100.0)
-          print(math.ceil(this_full_data[0]/255.0*100.0))
           # Loop through the 4 probes - selecting with offsets from loop counter
           j=0
           while j < 4
@@ -104,13 +102,11 @@ def handle_GVH5184(value, trigger, msg)
               output_map['Temperature_'+str(j+1)] = round(this_full_data[2+(j*3)]/100.0, this_device['temp_precision'])
               if this_full_data[3+(j*3)]==65535
                 output_map['Temperature_'+str(j+1)+'_Target'] = 'unavailable'
-
               else
                 output_map['Temperature_'+str(j+1)+'_Target'] = round(this_full_data[3+(j*3)]/100.0, this_device['temp_precision'])
               end
             # This is the normal branch  
             elif this_full_data[1+(j*3)] == 134
-              print('Normal Branch')
               output_map['Temperature_'+str(j+1)+'_Status'] = 'on'
               output_map['Temperature_'+str(j+1)+'_Alarm'] = 'off'
               output_map['Temperature_'+str(j+1)] = round(this_full_data[2+(j*3)]/100.0, this_device['temp_precision'])
@@ -134,7 +130,6 @@ def handle_GVH5184(value, trigger, msg)
           end
           # Publish data
           var this_topic = base_topic + '/' + this_device['alias']
-          print(json.dump(output_map))
           tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
           if this_device['publish_attributes']
             for output_key:output_map.keys()
