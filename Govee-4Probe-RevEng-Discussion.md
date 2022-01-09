@@ -26,9 +26,13 @@ Remaining string to be manipulated:
    36 3E 5D
    -- -- -- <- Last 3 bytes of MAC ADDRESS
 
-            4  5  6  7  8   
-            01 00 01 01 E4
-            -- -- -- -- -- <- static, unknown, not needed at this time
+            4  5  6  7     
+            01 00 01 01 
+            -- -- -- -- <- static, unknown, not needed at this time
+            
+                        8
+                        E4
+                        -- <- Battery Percentage Value divided by 255 for percentage.
 
                            9
                            01
