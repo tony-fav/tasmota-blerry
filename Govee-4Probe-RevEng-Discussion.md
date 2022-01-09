@@ -4,64 +4,85 @@ The full 'p' string that comes from BLE looks like this:
 
 0201060303518414FF363E5D01000101E40106FFFFFFFF06FFFFFFFF
 
-Breaking that down:
+Breaking that down: (ref - https://community.silabs.com/s/article/kba-bt-0201-bluetooth-advertising-data-basics?language=en_US)
 
 ```
-02 01 06 03 03
--- -- -- -- -- <- static - not useful at this time
+02 01 06    03 03 51 84    14 FF
 
-               51 84
-               -- -- <- model number
-                     14 FF
-                     -- -- <- separator bytes - all useful data comes after these two static bytes. 
-                                                We will look for this and start counting bytes after that
+
+02 01 06 
+-- -- -- <- Two bytes (02), Type = Flags (01), Value (06) (bitwise -  00000110) Bit 1 : “LE General Discoverable Mode”
+                                                                                Bit 2: “BR/EDR Not Supported.”
+
+03 03 51 84
+-- -- -- -- <- Three bytes (03), Type = Service Class (03), Little endian.  84 51 - not in the list of 16Bit UUIDs.  Perhaps Manuf cheated and just put model number here instead.  It is the 5184 sensor.
+
+14 FF
+-- -- <- 20 Bytes (0x14), Type = FF - Manuf. Proprietary data
+This is what we were looking for.  All data after the 14 FF will be data we can break up for sensor data.
 ```
 
-Remaining string to be manipulated:
+The remaining string to be manipulated:
 
-   36 3E 5D 01 00 01 01 E4 01 06 FF FF FF FF 06 FF FF FF FF
+36 3E 5D 01 00 01 01 E4 01 06 FF FF FF FF 06 FF FF FF FF
 
 ```
-   1  2  3 (Byte Sequence)
-   36 3E 5D
-   -- -- -- <- Last 3 bytes of MAC ADDRESS
+1  2  3 (Byte Sequence)
+36 3E 5D
+-- -- -- <- Last 3 bytes of MAC ADDRESS
 
-            4  5  6  7     
-            01 00 01 01 
-            -- -- -- -- <- static, unknown, not needed at this time
-            
-                        8
-                        E4
-                        -- <- Battery Percentage Value divided by 255 for percentage.
+          4  5  6  7     
+          01 00 01 01 
+          -- -- -- -- <- static, unknown, not needed at this time
 
-                           9
-                           01
-                           -- <- Sequence number.  Can be 01 or 02.  01 is Probe1&2.  02 is Probe3&4.
+                      8
+                      E4
+                      -- <- Battery Percentage Value divided by 255 for percentage.
 
-                              10  
-                              06
-                              -- <- Probe1/2 status.  06 is no probe.  86 is probe inserted.  C6 when probe has exceeded setpoint
+                         9
+                         01
+                         -- <- Sequence number.  Can be 01 or 02.  01 is Probe1&2.  02 is Probe3&4.
 
-                                 11 12  
-                                 FF FF
-                                 -- -- <- Probe1/2 temp.  FF FF if not inserted.  Big-endian 2-byte number.  See below.
+                            10  
+                            06
+                            -- <- Probe1/3 status.  06 is no probe.  86 is probe inserted.  C6 when probe has exceeded setpoint
 
-                                       13 14  
-                                       FF FF
-                                       -- -- <- Probe1/2 set point for alarm. Same scheme as temp.
+                               11 12  
+                               FF FF
+                               -- -- <- Probe1/3 temp.  FF FF if not inserted.  Big-endian 2-byte number.  See below.
 
-                                             15
-                                             06
-                                             -- <- Probe3/4 status. 06 is no probe.  86 is probe inserted.
-                                             
-                                                16 17  
-                                                FF FF
-                                                -- -- <- Probe3/4 temp.  Same scheme as Probe 1/3
+                                     13 14  
+                                     FF FF
+                                     -- -- <- Probe1/3 set point for alarm. Same scheme as temp.
 
-                                                      18 19  
-                                                      FF FF
-                                                      -- -- <- Probe3/4 set point for alarm. Same scheme as temp.
+                                           15
+                                           06
+                                           -- <- Probe2/4 status. 06 is no probe.  86 is probe inserted.
+
+                                              16 17  
+                                              FF FF
+                                              -- -- <- Probe2/4 temp.  Same scheme as Probe 1/3
+
+                                                    18 19  
+                                                    FF FF
+                                                    -- -- <- Probe2/4 set point for alarm. Same scheme as temp.
 ```
+
+We now can build out a sensor data stream to encode and push back through MQTT
+
+```
+BYTE8 - Battery %. 0x00-0xFF, 0-255 - Battery percentage is (VALUE / 255)
+BYTE9 - Sequence.  Either 01 or 02.  01 represents Probes 1 & 2.  02 represents probes 3 & 4.
+BYTE10 - Probe[A] Status.  [A] is 1 when Sequence is 1. [A] is 3 when Sequence is 2.
+          Possible Values.  06 - no probe inserted.   86 - Probe inserted normal function.  C6 - probe temp has exceeded set point.
+BYTE11-12 - Probe[A] Temp.  Two bytes - big endian - convert to decimal and divide by 100 to obtain temperature in (C).
+BYTE13-14 - Probe[A] Setpoint.  Two bytes - big endian.  Same conversion.  Temp to alarm at.  Will set status to C6 when temp >= setpoint
+BYTE15 - Probe[B] Status.  [A] is 1 when Sequence is 1. [A] is 3 when Sequence is 2.
+          Possible Values.  06 - no probe inserted.   86 - Probe inserted normal function.  C6 - probe temp has exceeded set point.
+BYTE16-17 - Probe[B] Temp.  Two bytes - big endian - convert to decimal and divide by 100 to obtain temperature in (C).
+BYTE18-19 - Probe[B] Setpoint.  Two bytes - big endian.  Same conversion.  Temp to alarm at.  Will set status to C6 when temp >= setpoint
+```
+
 
 
 Building on other driver files, the following approach will be used.
