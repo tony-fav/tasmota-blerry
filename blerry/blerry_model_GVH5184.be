@@ -13,7 +13,7 @@ def handle_GVH5184(value, trigger, msg)
       adv_type = p.get(i+1,1)
       adv_data = p[i+2..i+adv_len]
       if (adv_type == 0xFF) && (adv_len == 0x14)
-              # Build this_part_data with battery, probe-a state, probe-a temp, probe-a set, probe-b state, probe-b temp, probe-b set
+          # Build this_part_data with battery, probe-a state, probe-a temp, probe-a set, probe-b state, probe-b temp, probe-b set
           var this_part_data = [adv_data.get(7, -1), adv_data.get(9, -1), adv_data.get(10, -2), adv_data.get(12, -2), adv_data.get(14, -1), adv_data.get(15, -2), adv_data.get(17, -2)]
           var last_full_data = this_device['last_p']
           var last_part_data = [-1, -1, 0, 0, 0, 0, 0]
@@ -31,55 +31,35 @@ def handle_GVH5184(value, trigger, msg)
           if adv_data.get(8, -1) == 2  #sequence number
             seq_index = 6
           end
-          print('last_part_data',last_part_data)
-          print('this_part_data',this_part_data)
-          print('')
-          print('this_full_data_before',this_full_data)
-          print('last_data_before',last_full_data)
           # Move battery value into last_part_data
           last_part_data[0]=this_part_data[0]
-          print('last_part_data',last_part_data)
-          print('this_part_data',this_part_data)
-          print('')
-          print('this_full_data_before',this_full_data)
-          print('last_data_before',last_full_data)
-          # Move battery value into last_part_data
           # Fill last_part_data with probe values from last_full_data for testing later
           while j < 7
             last_part_data[j] = last_full_data[j+seq_index]
             j = j + 1
           end
-          
+          # Set battery value
+          this_full_data[0] = this_part_data[0]
           # Set loop counter at first probe value - skip battery
           j=1
-          #set battery value
-          this_full_data[0] = this_part_data[0]
+          # Loop through all 6 probes
           while j < 7
             this_full_data[j+seq_index] = this_part_data[j]
             this_full_data[j] = last_full_data[j]
-            print('')
-            print('       this_full_data-'+str(j),this_full_data)
-            print('       last_data-'+str(j),last_full_data)
-            j = j + 1
+           j = j + 1
           end
-          #                
-          #     
-          print('')
-          print('this_full_data',this_full_data)
-          print('last_data',last_full_data)
-          print('this_part_data',this_part_data)
-          print('last_part_data',last_part_data)
+          #If the partial data hasn't chnaged - end, otherwise store current value to last
           if this_part_data == last_part_data
             print('No change')
             return 0
           else
             device_config[value['mac']]['last_p'] = this_full_data
           end
-          print('Made it')
+          # If we haven't had at least one full pass on each bank, end.
           if this_full_data[1] < 0 || this_full_data[8] < 0
-            print('Negative Values')
             return 0
           end
+          # Do device discovery after we have all of the values
           if this_device['discovery'] && !this_device['done_disc']
             publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
             publish_binary_sensor_discovery(value['mac'], 'Temperature_1_Status', 'plug')
@@ -99,8 +79,8 @@ def handle_GVH5184(value, trigger, msg)
             publish_sensor_discovery(value['mac'], 'Temperature_4', 'temperature', '°C')
             publish_sensor_discovery(value['mac'], 'Temperature_4_Target', 'temperature', '°C')         
             device_config[value['mac']]['done_disc'] = true
-            print('Discovery Complete')
           end
+          # Create map of all the values needed for the MQTT JSON packet
           var output_map = {}
           output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
           output_map['alias'] = this_device['alias']
@@ -111,14 +91,14 @@ def handle_GVH5184(value, trigger, msg)
             output_map['Time_via_' + device_topic] = output_map['Time']
             output_map['RSSI_via_' + device_topic] = output_map['RSSI']
           end
+          # Battery is only stored once in list - so set it manually
           output_map['Battery'] = math.ceil(this_full_data[0]/255.0*100.0)
           print(math.ceil(this_full_data[0]/255.0*100.0))
-          print('not before battery')
+          # Loop through the 4 probes - selecting with offsets from loop counter
           j=0
           while j < 4
-            print(str(j))
+            # This is the alarm branch
             if this_full_data[1+(j*3)] == 198
-              print('Alarm Branch')
               output_map['Temperature_'+str(j+1)+'_Status'] = 'on'
               output_map['Temperature_'+str(j+1)+'_Alarm'] = 'on'
               output_map['Temperature_'+str(j+1)] = round(this_full_data[2+(j*3)]/100.0, this_device['temp_precision'])
@@ -128,6 +108,7 @@ def handle_GVH5184(value, trigger, msg)
               else
                 output_map['Temperature_'+str(j+1)+'_Target'] = round(this_full_data[3+(j*3)]/100.0, this_device['temp_precision'])
               end
+            # This is the normal branch  
             elif this_full_data[1+(j*3)] == 134
               print('Normal Branch')
               output_map['Temperature_'+str(j+1)+'_Status'] = 'on'
@@ -135,25 +116,23 @@ def handle_GVH5184(value, trigger, msg)
               output_map['Temperature_'+str(j+1)] = round(this_full_data[2+(j*3)]/100.0, this_device['temp_precision'])
               if this_full_data[3+(j*3)]==65535
                 output_map['Temperature_'+str(j+1)+'_Target'] = 'unavailable'
-
               else
                 output_map['Temperature_'+str(j+1)+'_Target'] = round(this_full_data[3+(j*3)]/100.0, this_device['temp_precision'])
               end
+            # This is the unplugged branch
             else
-              print('Unplugged Branch')
               output_map['Temperature_'+str(j+1)+'_Status'] = 'off'
               output_map['Temperature_'+str(j+1)+'_Alarm'] = 'off'
               output_map['Temperature_'+str(j+1)] = 'unavailable'
               if this_full_data[3+(j*3)]==65535
                 output_map['Temperature_'+str(j+1)+'_Target'] = 'unavailable'
-
               else
                 output_map['Temperature_'+str(j+1)+'_Target'] = round(this_full_data[3+(j*3)]/100.0, this_device['temp_precision'])
               end
             end
             j = j + 1
-            print('map pass'+str(j))
-          end      
+          end
+          # Publish data
           var this_topic = base_topic + '/' + this_device['alias']
           print(json.dump(output_map))
           tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
