@@ -82,16 +82,20 @@ def handle_GVH5184(value, trigger, msg)
           end
           if this_device['discovery'] && !this_device['done_disc']
             publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
-            publish_sensor_discovery(value['mac'], 'Temperature_1_Status')
+            publish_binary_sensor_discovery(value['mac'], 'Temperature_1_Status', 'plug')
+            publish_binary_sensor_discovery(value['mac'], 'Temperature_1_Alarm', 'heat')
             publish_sensor_discovery(value['mac'], 'Temperature_1', 'temperature', '°C')
             publish_sensor_discovery(value['mac'], 'Temperature_1_Target', 'temperature', '°C')
-            publish_sensor_discovery(value['mac'], 'Temperature_2_Status')
+            publish_binary_sensor_discovery(value['mac'], 'Temperature_2_Status', 'plug')
+            publish_binary_sensor_discovery(value['mac'], 'Temperature_2_Alarm', 'heat')
             publish_sensor_discovery(value['mac'], 'Temperature_2', 'temperature', '°C')
             publish_sensor_discovery(value['mac'], 'Temperature_2_Target', 'temperature', '°C')
-            publish_sensor_discovery(value['mac'], 'Temperature_3_Status')
+            publish_binary_sensor_discovery(value['mac'], 'Temperature_3_Status', 'plug')
+            publish_binary_sensor_discovery(value['mac'], 'Temperature_3_Alarm', 'heat')
             publish_sensor_discovery(value['mac'], 'Temperature_3', 'temperature', '°C')
             publish_sensor_discovery(value['mac'], 'Temperature_3_Target', 'temperature', '°C')
-            publish_sensor_discovery(value['mac'], 'Temperature_4_Status')
+            publish_binary_sensor_discovery(value['mac'], 'Temperature_4_Status', 'plug')
+            publish_binary_sensor_discovery(value['mac'], 'Temperature_4_Alarm', 'heat')
             publish_sensor_discovery(value['mac'], 'Temperature_4', 'temperature', '°C')
             publish_sensor_discovery(value['mac'], 'Temperature_4_Target', 'temperature', '°C')         
             device_config[value['mac']]['done_disc'] = true
@@ -107,14 +111,17 @@ def handle_GVH5184(value, trigger, msg)
             output_map['Time_via_' + device_topic] = output_map['Time']
             output_map['RSSI_via_' + device_topic] = output_map['RSSI']
           end
-          output_map['Battery'] = this_full_data[0]/255
+          output_map['Battery'] = math.ceil(this_full_data[0]/255.0*100.0)
+          print(math.ceil(this_full_data[0]/255.0*100.0))
           print('not before battery')
           j=0
           while j < 4
             print(str(j))
-            if this_full_data[1+(j*3)] == 6
-              output_map['Temperature_'+str(j+1)+'_Status'] = 'Unplugged'
-              output_map['Temperature_'+str(j+1)] = 'unavailable'
+            if this_full_data[1+(j*3)] == 198
+              print('Alarm Branch')
+              output_map['Temperature_'+str(j+1)+'_Status'] = 'on'
+              output_map['Temperature_'+str(j+1)+'_Alarm'] = 'on'
+              output_map['Temperature_'+str(j+1)] = round(this_full_data[2+(j*3)]/100.0, this_device['temp_precision'])
               if this_full_data[3+(j*3)]==65535
                 output_map['Temperature_'+str(j+1)+'_Target'] = 'unavailable'
 
@@ -122,7 +129,9 @@ def handle_GVH5184(value, trigger, msg)
                 output_map['Temperature_'+str(j+1)+'_Target'] = round(this_full_data[3+(j*3)]/100.0, this_device['temp_precision'])
               end
             elif this_full_data[1+(j*3)] == 134
-              output_map['Temperature_'+str(j+1)+'_Status'] = 'Normal'
+              print('Normal Branch')
+              output_map['Temperature_'+str(j+1)+'_Status'] = 'on'
+              output_map['Temperature_'+str(j+1)+'_Alarm'] = 'off'
               output_map['Temperature_'+str(j+1)] = round(this_full_data[2+(j*3)]/100.0, this_device['temp_precision'])
               if this_full_data[3+(j*3)]==65535
                 output_map['Temperature_'+str(j+1)+'_Target'] = 'unavailable'
@@ -131,8 +140,10 @@ def handle_GVH5184(value, trigger, msg)
                 output_map['Temperature_'+str(j+1)+'_Target'] = round(this_full_data[3+(j*3)]/100.0, this_device['temp_precision'])
               end
             else
-              output_map['Temperature_'+str(j+1)+'_Status'] = 'Alarm'
-              output_map['Temperature_'+str(j+1)] = round(this_full_data[2+(j*3)]/100.0, this_device['temp_precision'])
+              print('Unplugged Branch')
+              output_map['Temperature_'+str(j+1)+'_Status'] = 'off'
+              output_map['Temperature_'+str(j+1)+'_Alarm'] = 'off'
+              output_map['Temperature_'+str(j+1)] = 'unavailable'
               if this_full_data[3+(j*3)]==65535
                 output_map['Temperature_'+str(j+1)+'_Target'] = 'unavailable'
 
