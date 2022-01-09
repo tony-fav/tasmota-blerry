@@ -36,27 +36,27 @@ Remaining string to be manipulated:
 
                               10  
                               06
-                              -- <- Probe1/3 status.  06 is no probe.  86 is probe inserted.
+                              -- <- Probe1/2 status.  06 is no probe.  86 is probe inserted.
 
                                  11 12  
                                  FF FF
-                                 -- -- <- Probe1/3 temp.  FF FF if not inserted.  Big-endian 2-byte number.  See below.
+                                 -- -- <- Probe1/2 temp.  FF FF if not inserted.  Big-endian 2-byte number.  See below.
 
                                        13 14  
                                        FF FF
-                                       -- -- <- Probe1/3 set point for alarm. Same scheme as temp.
+                                       -- -- <- Probe1/2 set point for alarm. Same scheme as temp.
 
                                              15
                                              06
-                                             -- <- Probe2/4 status. 06 is no probe.  86 is probe inserted.
+                                             -- <- Probe3/4 status. 06 is no probe.  86 is probe inserted.
                                              
                                                 16 17  
                                                 FF FF
-                                                -- -- <- Probe2/4 temp.  Same scheme as Probe 1/3
+                                                -- -- <- Probe3/4 temp.  Same scheme as Probe 1/3
 
                                                       18 19  
                                                       FF FF
-                                                      -- -- <- Probe2/4 set point for alarm. Same scheme as temp.
+                                                      -- -- <- Probe3/4 set point for alarm. Same scheme as temp.
 ```
 
 
