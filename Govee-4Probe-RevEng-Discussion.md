@@ -40,7 +40,7 @@ Remaining string to be manipulated:
 
                               10  
                               06
-                              -- <- Probe1/2 status.  06 is no probe.  86 is probe inserted.
+                              -- <- Probe1/2 status.  06 is no probe.  86 is probe inserted.  C6 when probe has exceeded setpoint
 
                                  11 12  
                                  FF FF
