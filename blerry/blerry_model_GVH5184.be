@@ -40,11 +40,11 @@ def handle_GVH5184(value, trigger, msg)
         this_full_data[0]= adv_data.get(7, -1)
         print('Battery Value',this_full_data[0])
         # Increment cycle counter
-        if this_full_data[3] > 30
+#        if this_full_data[3] > 30
           this_full_data[3] = 0
-        else
-          this_full_data[3]=this_full_data[3]+1
-        end
+#        else
+#          this_full_data[3]=this_full_data[3]+1
+#        end
         # Update bank 1 or 2
         print('Before',this_full_data[seq_num])
         this_full_data[seq_num]=this_part_data.copy()
@@ -65,9 +65,11 @@ def handle_GVH5184(value, trigger, msg)
             publish_sensor_discovery(value['mac'], 'Temperature_'+str(j), 'temperature', '°C')
             publish_sensor_discovery(value['mac'], 'Temperature_'+str(j)+'_Target', 'temperature', '°C')
           end
+          publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
+          publish_sensor_discovery(value['mac'], 'RSSI', 'signal_strength', 'dB')
           device_config[value['mac']]['done_disc'] = true
-        end
-        print('Yay - Device Discovery happened.')
+          print('Yay - Device Discovery happened.')
+        end   
         # Create map of all the values needed for the MQTT JSON packet
         var output_map = {}
         output_map['Time'] = tasmota.time_str(tasmota.rtc()['local'])
@@ -121,6 +123,8 @@ def handle_GVH5184(value, trigger, msg)
           end     
         end
         print('We made it to the end of publish.')
+        print('')
+        print('')
       end          
       i = i + adv_len + 1
     end
