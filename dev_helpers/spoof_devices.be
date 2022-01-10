@@ -9,8 +9,11 @@ fake_ble.every_second = def ()
     # tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"494207CCCCCC\",\"a\":\"inkbirdth_active_noH\",\"RSSI\":-83,\"p\":\"0201060302F0FF04097470730AFF5CFA000000C4D54908\"}}','test')
     # tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"D4E4A3AAAAAA\",\"a\":\"sbot_temp_passive\",\"RSSI\":-75,\"p\":\"02010609FF5900D4E4A3AAAAAA\"}}','test')
     # tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"D4E4A3BBBBBB/1\",\"a\":\"sbot_temp_active\",\"RSSI\":-83,\"p\":\"02010609FF5900D4E4A3BBBBBB11071BC5D5A50200B89FE6114D22000DA2CB0916000D5410640411BC\",\"0x0d00\":\"5410640511BC\"}}','test')
-     tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"D03232XXXXXX/1\",\"a\":\"govee5184_seq1\",\"RSSI\":-83,\"p\":\"0201060303518414FF363E5D01000101B8018F08FCFFFF06FFFFFFFF"}}','test')
-     tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"D03232XXXXXX/1\",\"a\":\"govee5184_seq2\",\"RSSI\":-81,\"p\":\"0201060303518414FF363E5D01000101B8028F0960FFFF860960FFFF"}}','test')
+      if (tasmota.millis()%2) == 1
+        tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"D03232XXXXXX/1\",\"a\":\"govee5184_seq1\",\"RSSI\":-83,\"p\":\"0201060303518414FF363E5D01000101B8018F08FCFFFF06FFFFFFFF"}}','test')
+      else
+        tasmota.publish_result('{\"DetailsBLE\":{\"mac\":\"D03232XXXXXX/1\",\"a\":\"govee5184_seq2\",\"RSSI\":-81,\"p\":\"0201060303518414FF363E5D01000101B8028F0960FFFF860960FFFF"}}','test')
+      end
     fake_print_time = tasmota.millis(5000)
   end
 end
