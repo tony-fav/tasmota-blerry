@@ -105,10 +105,11 @@ def handle_GVH5184(value, trigger, msg)
             else
               probeset = probeset .. round(this_full_data[j][5+((k-j)*3)]/100.0, this_device['temp_precision'])
             end
-            output_map['Temperature_'+str(j+k)+'_Status'] = probeset[1]
-            output_map['Temperature_'+str(j+k)+'_Alarm'] = probeset[2]
-            output_map['Temperature_'+str(j+k)] = probeset[3]
-            output_map['Temperature_'+str(j+k)+'_Target'] = probeset[4]
+            print(probeset)
+            output_map['Temperature_'+str(j+k)+'_Status'] = probeset[0]
+            output_map['Temperature_'+str(j+k)+'_Alarm'] = probeset[1]
+            output_map['Temperature_'+str(j+k)] = probeset[2]
+            output_map['Temperature_'+str(j+k)+'_Target'] = probeset[3]
           end
         end
         # Publish data
