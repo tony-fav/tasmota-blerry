@@ -15,7 +15,7 @@
 #   use_lwt             OPTIONAL (default = false)      use LWT for availability in discovery payloads (discovery packet also include 600s timeout of sensor data)
 #   via_pubs            OPTIONAL (default = false)      publish Time_via_%topic% and RSSI_via_%topic% data with each data set
 #   sensor_retain       OPTIONAL (default = false)      add retain flag to sensor data set publishes
-#   publish attributes  OPTIONAL (default = false)      publish individual topics for each attribute in addition to the JSON payload
+#   publish_attributes  OPTIONAL (default = false)      publish individual topics for each attribute in addition to the JSON payload
 #   temp_precision      OPTIONAL (default = 2, int)     digits of precision for temperature
 #   humi_precision      OPTIONAL (default = 1, int)     digits of precision for humidity
 var user_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true},
