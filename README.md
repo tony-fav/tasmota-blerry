@@ -25,16 +25,17 @@ If you use HA discovery, devices should appear under MQTT Devices NOT the Tasmot
 
 ## Supported Sensors
 
-| Model String | Mac Example | Description |
-| ------------ | ----------- | ----------- |
-| `'ATCpvvx'` | `'A4C138XXXXXX'` | Xiaomi sensors on ATC or pvvx firmware with "ATC1441" or "Custom" advertisement  |
-| `'ATCmi'` | `'A4C138XXXXXX'` | Xiaomi sensors on ATC or pvvx firmware with "Mi" advertisement  |
-| `'GVH5075'` | `'A4C138XXXXXX'` | Govee H5075. Should work for H5072 as well (untested). |
-| `'GVH5183'` | `'A4C138XXXXXX'` | Govee H5183 single probe meat thermometer. |
-| `'GVH5184'` | `'D03232XXXXXX/1'` | Govee H5184 four probe meat thermometer with display. |
-| `'IBSTH2'` | `'494208XXXXXX'` | Inkbird IBSTH2 with and without humidity. Should work for IBSTH1 as well (untested). |
+| Model String   | Mac Example        | Description |
+| -------------- | ------------------ | ----------- |
+| `'ATCpvvx'`    | `'A4C138XXXXXX'`   | Xiaomi sensors on ATC or pvvx firmware with "ATC1441" or "Custom" advertisement. |
+| `'ATCmi'`      | `'A4C138XXXXXX'`   | Xiaomi sensors on ATC or pvvx firmware with "Mi" advertisement. |
+| `'GVH5075'`    | `'A4C138XXXXXX'`   | Govee H5072 and H5075. |
+| `'GVH5182'`    | `'C33130XXXXXX/1'` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
+| `'GVH5183'`    | `'A4C138XXXXXX'`   | Govee H5183 single probe meat thermometer. |
+| `'GVH5184'`    | `'D03232XXXXXX/1'` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |
+| `'IBSTH2'`     | `'494208XXXXXX'`   | Inkbird IBSTH1 & IBSTH2 with and without humidity. |
 | `'WoSensorTH'` | `'D4E4A3XXXXXX/1'` | Switchbot temperature and humidity sensor. |
-| `'WoContact'` | `'D4BD28XXXXXX/1'` | Switchbot contact sensor (also has motion, binary lux, and a button). |
+| `'WoContact'`  | `'D4BD28XXXXXX/1'` | Switchbot contact sensor (also has motion, binary lux, and a button). |
 | `'WoPresence'` | `'FC7CADXXXXXX/1'` | Switchbot motion sensor (also has binary lux). |
 
 ## Development Status
@@ -44,7 +45,6 @@ I *have* the following devices that I am seeking to support:
 - Switchbot Curtain
 - Switchbot Remote
 - SP611E (LED Controller)
-- Xiaomi sensors on ATC firmware with mi-like advertisement.
   
 I *do not have* the following devices but would like to support them as they have been discussed in Digiblur's Discord.
 - Govee H5074
