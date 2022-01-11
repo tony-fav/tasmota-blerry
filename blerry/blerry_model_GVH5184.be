@@ -57,25 +57,25 @@ def handle_GVH5184(value, trigger, msg)
         output_map['Battery'] = this_full_data[0] & 0x7F
         for j:1 .. 2
           for k:j-1 .. j
-            var probeset
-            if (this_full_data[j][3+((k-j)*3)] & 0x80) >> 7
-              probeset = ['ON', 'OFF']              
-            else
-              probeset = ['OFF', 'OFF']
+            var probeset = ['OFF', 'OFF']
+            var status = this_full_data[j][3+((k-j)*3)]
+            var probetemp = this_full_data[j][4+((k-j)*3)]
+            var setpoint = this_full_data[j][5+((k-j)*3)]
+            if (status & 0x80) >> 7
+              probeset[0] = 'ON'              
             end
-            if (this_full_data[j][3+((k-j)*3)] & 0x40) >> 6
-              probeset = ['ON', 'ON']
+            if (status & 0x40) >> 6
+              probeset[1] = 'ON'
             end
-            if this_full_data[j][4+((k-j)*3)]==65535
+            if probetemp==0xFFFF
               probeset = probeset .. 'unavailable'
             else
-              probeset = probeset .. round(this_full_data[j][4+((k-j)*3)]/100.0, this_device['temp_precision'])
+              probeset = probeset .. round(probetemp/100.0, this_device['temp_precision'])
             end           
-            if this_full_data[j][5+((k-j)*3)]==65535
+            if setpoint==0xFFFF
               probeset = probeset .. 'unavailable'
             else
-              probeset = probeset .. round(this_full_data[j][5+((k-j)*3)]/100.0, this_device['temp_precision'])
-            end
+              probeset = probeset .. round(setpoint/100.0, this_device['temp_precision'])
             output_map['Temperature_'+str(j+k)+'_Status'] = probeset[0]
             output_map['Temperature_'+str(j+k)+'_Alarm'] = probeset[1]
             output_map['Temperature_'+str(j+k)] = probeset[2]
