@@ -64,7 +64,7 @@ def handle_GVH5184(value, trigger, msg)
               probeset = ['OFF', 'OFF']
             end
             if (this_full_data[j][3+((k-j)*3)] & 0x40) >> 6
-              probeset[1] = ['ON']
+              probeset = ['ON', 'ON']
             end
             if this_full_data[j][4+((k-j)*3)]==65535
               probeset = probeset .. 'unavailable'
