@@ -1,3 +1,5 @@
+# 22:12:56.826 RSL: BLE = {"DetailsBLE":{"mac":"C33130305011/1","a":"govee5182meats","RSSI":-24,"p":"0201060303518214FF30501101000101E4018308981CE88208981BC7"}}
+# 02 0106 03 035182 14 FF 30501101000101E4018308981CE88208981BC7
 def handle_GVH5182(value, trigger, msg)
     if trigger == details_trigger
       var this_device = device_config[value['mac']]
@@ -11,7 +13,7 @@ def handle_GVH5182(value, trigger, msg)
         adv_type = p.get(i+1,1)
         adv_data = p[i+2..i+adv_len]
         if (adv_type == 0xFF) && (adv_len == 0x14)
-            var this_data = [adv_data.get(10, -2), adv_data.get(12, -2), adv_data.geti(15, -2), adv_data.geti(17, -2)]
+            var this_data = [adv_data[7] & 0x7F, adv_data.get(10, -2), adv_data.get(12, -2), adv_data.geti(15, -2), adv_data.geti(17, -2)]
             var last_data = this_device['last_p']
             if (last_data != bytes('')) && (this_data == last_data)
               return 0
@@ -22,6 +24,7 @@ def handle_GVH5182(value, trigger, msg)
               publish_sensor_discovery(value['mac'], 'Temperature_1_Target', 'temperature', '°C')
               publish_sensor_discovery(value['mac'], 'Temperature_2', 'temperature', '°C')
               publish_sensor_discovery(value['mac'], 'Temperature_2_Target', 'temperature', '°C')
+              publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
               publish_sensor_discovery(value['mac'], 'RSSI', 'signal_strength', 'dB')
               device_config[value['mac']]['done_disc'] = true
             end
@@ -35,25 +38,26 @@ def handle_GVH5182(value, trigger, msg)
               output_map['Time_via_' + device_topic] = output_map['Time']
               output_map['RSSI_via_' + device_topic] = output_map['RSSI']
             end
-            if this_data[0] == 65535
+            output_map['Battery'] = this_data[0]
+            if this_data[1] == 65535
               output_map['Temperature_1'] = 'unavailable'
             else
-              output_map['Temperature_1'] = round(this_data[0]/100.0, this_device['temp_precision'])
-            end
-            if this_data[1] == 65535
-              output_map['Temperature_1_Target'] = 'unavailable'
-            else
-              output_map['Temperature_1_Target'] = round(this_data[1]/100.0, this_device['temp_precision'])
+              output_map['Temperature_1'] = round(this_data[1]/100.0, this_device['temp_precision'])
             end
             if this_data[2] == 65535
-              output_map['Temperature_2'] = 'unavailable'
+              output_map['Temperature_1_Target'] = 'unavailable'
             else
-              output_map['Temperature_2'] = round(this_data[2]/100.0, this_device['temp_precision'])
+              output_map['Temperature_1_Target'] = round(this_data[2]/100.0, this_device['temp_precision'])
             end
             if this_data[3] == 65535
+              output_map['Temperature_2'] = 'unavailable'
+            else
+              output_map['Temperature_2'] = round(this_data[3]/100.0, this_device['temp_precision'])
+            end
+            if this_data[4] == 65535
               output_map['Temperature_2_Target'] = 'unavailable'
             else
-              output_map['Temperature_2_Target'] = round(this_data[3]/100.0, this_device['temp_precision'])
+              output_map['Temperature_2_Target'] = round(this_data[4]/100.0, this_device['temp_precision'])
             end
             var this_topic = base_topic + '/' + this_device['alias']
             tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])

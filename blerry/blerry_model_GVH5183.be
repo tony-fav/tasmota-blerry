@@ -11,7 +11,7 @@ def handle_GVH5183(value, trigger, msg)
       adv_type = p.get(i+1,1)
       adv_data = p[i+2..i+adv_len]
       if (adv_type == 0xFF) && (adv_len == 0x11)
-          var this_data = [adv_data.get(10, -2), adv_data.get(12, -2), adv_data.geti(14, -2)]
+          var this_data = [adv_data[7] & 0x7F, adv_data.get(10, -2), adv_data.get(12, -2), adv_data.geti(14, -2)]
           var last_data = this_device['last_p']
           if (last_data != bytes('')) && (this_data == last_data)
             return 0
@@ -23,6 +23,7 @@ def handle_GVH5183(value, trigger, msg)
             publish_sensor_discovery(value['mac'], 'Temperature_Calibration_C', 'temperature', 'ΔC')
             publish_sensor_discovery(value['mac'], 'Temperature_Calibration_F', 'temperature', 'ΔF')
             publish_binary_sensor_discovery(value['mac'], 'Probe_Status', 'connectivity')
+            publish_sensor_discovery(value['mac'], 'Battery', 'battery', '%')
             publish_sensor_discovery(value['mac'], 'RSSI', 'signal_strength', 'dB')
             device_config[value['mac']]['done_disc'] = true
           end
@@ -36,15 +37,16 @@ def handle_GVH5183(value, trigger, msg)
             output_map['Time_via_' + device_topic] = output_map['Time']
             output_map['RSSI_via_' + device_topic] = output_map['RSSI']
           end
-          if this_data[0] == 65535
+          output_map['Battery'] = this_data[0]
+          if this_data[1] == 65535
             output_map['Probe_Status'] = 'OFF'
           else
             output_map['Probe_Status'] = 'ON'
           end
-          output_map['Temperature'] = round((this_data[0] + this_data[2])/100.0, this_device['temp_precision'])
-          output_map['Temperature_Target'] = round(this_data[1]/100.0, this_device['temp_precision'])
-          output_map['Temperature_Calibration_C'] = round(this_data[2]/100.0, this_device['temp_precision'])
-          output_map['Temperature_Calibration_F'] = round(this_data[2]/100.0*1.8, this_device['temp_precision'])
+          output_map['Temperature'] = round((this_data[1] + this_data[3])/100.0, this_device['temp_precision'])
+          output_map['Temperature_Target'] = round(this_data[2]/100.0, this_device['temp_precision'])
+          output_map['Temperature_Calibration_C'] = round(this_data[3]/100.0, this_device['temp_precision'])
+          output_map['Temperature_Calibration_F'] = round(this_data[3]/100.0*1.8, this_device['temp_precision'])
           var this_topic = base_topic + '/' + this_device['alias']
           tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
           if this_device['publish_attributes']
