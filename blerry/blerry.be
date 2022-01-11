@@ -18,8 +18,10 @@
 #   publish_attributes  OPTIONAL (default = false)      publish individual topics for each attribute in addition to the JSON payload
 #   temp_precision      OPTIONAL (default = 2, int)     digits of precision for temperature
 #   humi_precision      OPTIONAL (default = 1, int)     digits of precision for humidity
-var user_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true},
+var user_config = {
+                   'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true},
                    'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'via_pubs': false},
+                   'C33130XXXXXX/1': {'alias': 'govee5182-2probe-meats', 'model': 'GVH5182'},
                    'A4C138XXXXXX': {'alias': 'govee5183meats', 'model': 'GVH5183'},
                    'D03232XXXXXX/1': {'alias': 'govee5184-4probe-meats', 'model': 'GVH5184'},
                    'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true},
@@ -27,7 +29,8 @@ var user_config = {'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH507
                    '494208DDDDDD': {'alias': 'trial_inkbird', 'model': 'IBSTH2', 'discovery': true},
                    'D4E4A3BBBBBB/1': {'alias': 'sbot_TH', 'model': 'WoSensorTH'},
                    'D4BD28AAAAAA/1': {'alias': 'sbot_contact', 'model': 'WoContact'},
-                   'FC7CADCCCCCC/1': {'alias': 'sbot_motion', 'model': 'WoPresence'}}
+                   'FC7CADCCCCCC/1': {'alias': 'sbot_motion', 'model': 'WoPresence'},
+                   }
 var base_topic = 'tele/tasmota_blerry' # where to publish the sensor data
 
 
