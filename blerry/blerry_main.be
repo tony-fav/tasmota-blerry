@@ -107,7 +107,8 @@ for mac:user_config.keys()
 end
 
 # Load model handle functions only if used
-var model_drivers = {'GVH5075'   : 'blerry_model_GVH5075.be',
+var model_drivers = {
+                     'GVH5075'   : 'blerry_model_GVH5075.be',
                      'GVH5182'   : 'blerry_model_GVH5182.be',
                      'GVH5183'   : 'blerry_model_GVH5183.be',
                      'GVH5184'   : 'blerry_model_GVH5184.be',
@@ -119,7 +120,9 @@ var model_drivers = {'GVH5075'   : 'blerry_model_GVH5075.be',
                      'IBSTH2'    : 'blerry_model_IBSTH2.be',
                      'WoSensorTH': 'blerry_model_WoSensorTH.be',
                      'WoContact' : 'blerry_model_WoContact.be',
-                     'WoPresence': 'blerry_model_WoPresence.be'}
+                     'WoPresence': 'blerry_model_WoPresence.be',
+                     'ignore'    : 'blerry_model_ignore.be'
+                     }
 var models = {}
 for mac:user_config.keys()
   models[model_drivers[device_config[mac]['model']]] = true
