@@ -54,7 +54,7 @@ def handle_GVH5184(value, trigger, msg)
           output_map['Time_via_' + device_topic] = output_map['Time']
           output_map['RSSI_via_' + device_topic] = output_map['RSSI']
         end
-        output_map['Battery'] = math.ceil(this_full_data[0]/255.0*100.0)
+        output_map['Battery'] = this_full_data[0] & 0x7F
         for j:1 .. 2
           for k:j-1 .. j
             var probeset
