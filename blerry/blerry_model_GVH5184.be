@@ -76,6 +76,7 @@ def handle_GVH5184(value, trigger, msg)
               probeset = probeset .. 'unavailable'
             else
               probeset = probeset .. round(setpoint/100.0, this_device['temp_precision'])
+            end
             output_map['Temperature_'+str(j+k)+'_Status'] = probeset[0]
             output_map['Temperature_'+str(j+k)+'_Alarm'] = probeset[1]
             output_map['Temperature_'+str(j+k)] = probeset[2]
