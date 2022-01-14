@@ -47,10 +47,11 @@ def handle_GVH5075(value, trigger, msg)
         end
         if basenum >= 0x800000
           output_map['Temperature'] = (basenum-0x800000)/-10000.0
+          output_map['Humidity'] = ((basenum-0x800000) % 1000)/10.0
         else
           output_map['Temperature'] = basenum/10000.0
+          output_map['Humidity'] = (basenum % 1000)/10.0
         end
-        output_map['Humidity'] = (basenum % 1000)/10.0
         output_map['DewPoint'] = round(get_dewpoint(output_map['Temperature'], output_map['Humidity']), this_device['temp_precision'])
         output_map['Temperature'] = round(output_map['Temperature'], this_device['temp_precision'])
         output_map['Humidity'] = round(output_map['Humidity'], this_device['humi_precision'])
