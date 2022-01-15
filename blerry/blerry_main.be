@@ -108,6 +108,9 @@ end
 
 # Load model handle functions only if used
 var model_drivers = {'GVH5075'   : 'blerry_model_GVH5075.be',
+                     'GVH5072'   : 'blerry_model_GVH5075.be',
+                     'GVH5101'   : 'blerry_model_GVH5075.be',
+                     'GVH5102'   : 'blerry_model_GVH5075.be',
                      'GVH5182'   : 'blerry_model_GVH5182.be',
                      'GVH5183'   : 'blerry_model_GVH5183.be',
                      'GVH5184'   : 'blerry_model_GVH5184.be',

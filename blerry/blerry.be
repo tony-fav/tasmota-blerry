@@ -21,6 +21,9 @@
 var user_config = {
                    'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true},
                    'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'via_pubs': false},
+                   'A4C1381XXXXX': {'alias': 'test_govee5072', 'model': 'GVH5072'},
+                   'A4C1381XXXXX': {'alias': 'test_govee5101', 'model': 'GVH5101'},
+                   'A4C1381XXXXX': {'alias': 'test_govee5102', 'model': 'GVH5102'},
                    'C33130XXXXXX/1': {'alias': 'govee5182-2probe-meats', 'model': 'GVH5182'},
                    'A4C138XXXXXX': {'alias': 'govee5183meats', 'model': 'GVH5183'},
                    'D03232XXXXXX/1': {'alias': 'govee5184-4probe-meats', 'model': 'GVH5184'},

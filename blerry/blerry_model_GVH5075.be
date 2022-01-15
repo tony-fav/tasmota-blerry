@@ -36,15 +36,22 @@ def handle_GVH5075(value, trigger, msg)
           output_map['Time_via_' + device_topic] = output_map['Time']
           output_map['RSSI_via_' + device_topic] = output_map['RSSI']
         end
-        var basenum = (bytes('00') + adv_data[3..5]).get(0,-4)
+        var dev_type = adv_data.get(0,-2)
+        var basenum = 0x00000000
+        if dev_type == 0x88EC # GVH5075/GVH5072
+          basenum = (bytes('00') + adv_data[3..5]).get(0,-4)
+          output_map['Battery'] = adv_data.get(6,1)
+        elif dev_type == 0x0100 # GVH5101/GVH5102
+          basenum = (bytes('00') + adv_data[4..6]).get(0,-4)
+          output_map['Battery'] = adv_data.get(7,1)
+        end
         if basenum >= 0x800000
-          output_map['Temperature'] = (0x800000 - basenum)/10000.0
-          output_map['Humidity'] = ((basenum - 0x800000) % 1000)/10.0
+          output_map['Temperature'] = (basenum-0x800000)/-10000.0
+          output_map['Humidity'] = ((basenum-0x800000) % 1000)/10.0
         else
           output_map['Temperature'] = basenum/10000.0
           output_map['Humidity'] = (basenum % 1000)/10.0
         end
-        output_map['Battery'] = adv_data.get(6,1)
         output_map['DewPoint'] = round(get_dewpoint(output_map['Temperature'], output_map['Humidity']), this_device['temp_precision'])
         output_map['Temperature'] = round(output_map['Temperature'], this_device['temp_precision'])
         output_map['Humidity'] = round(output_map['Humidity'], this_device['humi_precision'])
@@ -64,3 +71,12 @@ end
 # map function into handles array
 device_handles['GVH5075'] = handle_GVH5075
 require_active['GVH5075'] = false
+
+device_handles['GVH5072'] = handle_GVH5075
+require_active['GVH5072'] = false
+
+device_handles['GVH5101'] = handle_GVH5075
+require_active['GVH5101'] = false
+
+device_handles['GVH5102'] = handle_GVH5075
+require_active['GVH5102'] = false
