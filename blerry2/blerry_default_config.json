@@ -1,0 +1,12 @@
+{
+  "discovery": false,
+  "use_lwt": false,
+  "via_pubs": false,
+  "sensor_retain": false,
+  "publish_attributes": false,
+  "precision": {
+    "Temperature": 2,
+    "Humidity": 1,
+    "Battery": 0
+  }
+}

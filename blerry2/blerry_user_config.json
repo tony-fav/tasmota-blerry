@@ -1,0 +1,69 @@
+{
+   "base_topic": "tele/tasmota_blerry",
+   "devices": {
+     "A4C138000000": {
+       "alias": "example_ATC_or_PVVX",
+       "model": "ATCpvvx"
+     },
+     "A4C138111111": {
+       "alias": "example_ATC_on_MI",
+       "model": "ATCmi"
+     },
+     "A4C138222222": {
+       "alias": "example_GVH5075",
+       "model": "GVH5075"
+     },
+     "A4C138333333": {
+       "alias": "example_GVH5072",
+       "model": "GVH5072"
+     },
+     "A4C138444444": {
+       "alias": "example_GVH5101",
+       "model": "GVH5101"
+     },
+     "A4C138555555": {
+       "alias": "example_GVH5102",
+       "model": "GVH5102"
+     },
+     "A4C138666666": {
+       "alias": "example_GVH5183",
+       "model": "GVH5183"
+     },
+     "C33130000000/1": {
+       "alias": "example_GVH5182",
+       "model": "GVH5182"
+     },
+     "D03232000000/1": {
+       "alias": "example_GVH5184",
+       "model": "GVH5184"
+     },
+     "494208000000": {
+       "alias": "example_IBSTH2",
+       "model": "IBSTH2"
+     },
+     "D4E4A3000000/1": {
+       "alias": "sbot_TH",
+       "model": "WoSensorTH"
+     },
+     "D4BD28000000/1": {
+       "alias": "sbot_contact",
+       "model": "WoContact"
+     },
+     "FC7CAD000000/1": {
+       "alias": "sbot_motion",
+       "model": "WoPresence"
+     }
+   },
+   "override": {
+     "discovery": false,
+     "precision": {
+       "Temperature": 1,
+       "Humidity": 0,
+       "Battery": -1
+     }
+   },
+   "advanced": {
+     "old_details": false,
+     "discovery_retain": true
+   }
+ }
