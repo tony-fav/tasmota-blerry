@@ -201,6 +201,7 @@ end
 class Blerry_Device
   var mac
   var config
+  var b
   var alias
   var handle
   var active
@@ -212,9 +213,10 @@ class Blerry_Device
   var topic
   var publish_available
 
-  def init(mac, config)
+  def init(mac, config, blerry_inst)
     self.mac = mac
     self.config = config
+    self.b = blerry_inst
     self.alias = config['alias']
     self.load_driver()
     self.attributes = {}
@@ -305,23 +307,73 @@ class Blerry_Device
   end
 
   def publish()
-    var msg = {}
-    for a:self.attributes
-      msg[a.name] = a.value
-    end
-    for s:self.sensors
-      msg[s.name] = s.value
-    end
-    for bs:self.binary_sensors
-      msg[bs.name] = bs.value
-    end
-    tasmota.publish(self.topic, json.dump(msg), self.config['sensor_retain'])
-    if self.config['publish_attributes']
-      for k:msg.keys()
-        tasmota.publish(self.topic + '/' + k, string.format('%s', msg[k]), self.config['sensor_retain'])
+    if self.publish_available
+      var msg = {}
+      for a:self.attributes
+        msg[a.name] = a.value
       end
+      for s:self.sensors
+        msg[s.name] = s.value
+      end
+      for bs:self.binary_sensors
+        msg[bs.name] = bs.value
+      end
+      tasmota.publish(self.topic, json.dump(msg), self.config['sensor_retain'])
+      if self.config['publish_attributes']
+        for k:msg.keys()
+          tasmota.publish(self.topic + '/' + k, string.format('%s', msg[k]), self.config['sensor_retain'])
+        end
+      end
+      self.publish_available = false
     end
-    self.publish_available = false
+  end
+
+  def publish_discovery()
+    self.publish_sensor_discovery()
+  end
+
+  def publish_sensor_discovery()
+    var topic_fmt = 'homeassistant/sensor/blerry_' + self.alias + '/%s/config'
+    if size(self.sensors_to_discover)
+      var msg = {}
+
+      # Make the parts associated with the device, not the sensor
+      # LWT Part
+      if self.config['use_lwt']
+        msg['avty_t'] = self.b.device_tele_topic + '/LWT'
+        msg['pl_avail'] = 'Online'
+        msg['pl_not_avail'] = 'Offline'
+      else
+        msg['avty'] = []
+      end
+
+      # Device Association Part
+      msg['dev'] = {}
+      msg['dev']['ids'] = [('blerry_' + self.alias)]
+      msg['dev']['name'] = self.alias
+      msg['dev']['mf'] = 'BLErry2'
+      msg['dev']['mdl'] = self.config['model']
+      msg['dev']['via_device'] = self.b.hostname
+
+      # Topic Part
+      msg['exp_aft'] = 600
+      msg['json_attr_t'] = self.topic
+      msg['stat_t'] = self.topic
+
+      # the parts that are unique to each sensor
+      for s:self.sensors_to_discover
+        msg['name'] = self.alias + ' ' + self.sensors[s].name
+        msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.sensors[s].name
+        msg['dev_cla'] = self.sensors[s].dev_cla
+        msg['unit_of_meas'] = self.sensors[s].unit_of_meas
+        msg['val_tpl'] = '{{ value_json.' + self.sensors[s].name + ' }}'
+
+        # Here, I can implement an override from the config
+
+        tasmota.publish(string.format(topic_fmt, s), json.dump(msg), self.config['discovery_retain'])
+      end
+      self.sensors_to_discover = []
+    end
   end
 end
 
@@ -447,7 +499,7 @@ class Blerry
     var active = false
     self.devices = {}
     for m:self.device_config.keys()
-      var device = Blerry_Device(m, self.device_config[m])
+      var device = Blerry_Device(m, self.device_config[m], self)
       
       # host based attributes here
       self.devices[m] = device
@@ -480,9 +532,13 @@ class Blerry
 
   def publish()
     for d:self.devices
-      if d.publish_available
-        d.publish()
-      end
+      d.publish()
+    end
+  end
+
+  def publish_discovery()
+    for d:self.devices
+      d.publish_discovery()
     end
   end
 
@@ -502,6 +558,7 @@ class Blerry_Driver : Driver
   end
 
   def every_second()
+    self.b.publish_discovery()
     self.b.publish()
   end
 
