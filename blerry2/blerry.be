@@ -197,8 +197,8 @@ class Blerry_Device
   var sensors_to_discover
   var binary_sensors
   var binary_sensors_to_discover
+  var topic
   var publish_available
-  var publish_priority
 
   def init(mac, config)
     self.mac = mac
@@ -215,8 +215,14 @@ class Blerry_Device
     self.add_attribute('MAC', self.mac)
     self.add_attribute('Alias', self.alias)
     self.add_attribute('Model', self.config['model'])
+
+    # publication related
     self.publish_available = false
-    self.publish_priority = 0
+    self.topic = self.config['base_topic']
+    if self.topic[-1] != '/'
+      self.topic = self.topic + '/'
+    end
+    self.topic = self.topic + self.alias
   end
 
   def load_driver()
@@ -283,6 +289,26 @@ class Blerry_Device
       self.binary_sensors[name] = Blerry_Binary_Sensor(name, value, dev_cla)
       self.publish_available = true
     end
+  end
+
+  def publish()
+    var msg = {}
+    for a:self.attributes
+      msg[a.name] = a.value
+    end
+    for s:self.sensors
+      msg[s.name] = s.value
+    end
+    for bs:self.binary_sensors
+      msg[bs.name] = bs.value
+    end
+    tasmota.publish(self.topic, json.dump(msg), self.config['sensor_retain'])
+    if self.config['publish_attributes']
+      for k:msg.keys()
+        tasmota.publish(self.topic + '/' + k, string.format('%s', msg[k]), self.config['sensor_retain'])
+      end
+    end
+    self.publish_available = false
   end
 end
 
@@ -353,9 +379,6 @@ class Blerry
       raise "blerry_error", "no blerry_user_config.json found"
     end
 
-    if self.base_topic[-1] == '/' # allow / at the end but remove it here
-      self.base_topic = self.base_topic[0..-2]
-    end
     self.details_trigger = 'DetailsBLE'
     if self.user_config['advanced']['old_details']
       self.details_trigger = 'details'
@@ -434,13 +457,21 @@ class Blerry
     tasmota.add_rule(self.details_trigger, / value, trigger, msg -> self.handle_BLE_packet(value, trigger, msg)) # "I prefer a lambda for the closure...." - sfromis
   end
 
+  def publish()
+    for d:self.devices
+      if d.publish_available
+        d.publish()
+      end
+    end
+  end
+
 end
 
 #######################################################################
 # Blerry_Driver
 #   periodic publication of data
 #   WebUI display of data
-# The goal of using a driver for publication is to rate limit ESP tasks a bit
+# The goal of using a driver for publication is to rate limit a bit
 #######################################################################
 class Blerry_Driver : Driver
   var b
@@ -450,6 +481,7 @@ class Blerry_Driver : Driver
   end
 
   def every_second()
+    self.b.publish()
   end
 
   def every_100ms()
