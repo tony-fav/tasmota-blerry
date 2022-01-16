@@ -415,9 +415,13 @@ class Blerry_Driver : Driver
   def web_sensor()
     var msg = ""
     for d:self.b.devices
+      msg = msg + "{s}<hr>{m}<hr>{e}"
       msg = msg + string.format("{s}-- BLErry Device --{m}-- Model: %s --{e}", d.config['model'])
       for s:d.sensors
         msg = msg + string.format("{s}%s %s{m}%g %s{e}", d.alias, s.name, s.value, s.unit_of_meas)
+      end
+      for a:d.attributes
+        msg = msg + string.format("{s}%s %s{m} %s{e}", d.alias, a.name, str(a.value))
       end
     end
     tasmota.web_send_decimal(msg)
