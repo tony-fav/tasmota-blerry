@@ -48,6 +48,18 @@ def string_replace(x, y, r)
   return z
 end
 
+def string_upper(x)
+  var y = ''
+  for i:0..size(x)-1
+    var b = string.byte(x[i])
+    if b >= 97 && b <= 122
+      b = b - 32
+    end
+    y = y + string.char(b)
+  end
+  return y
+end
+
 def bitval(x, i)
   return (x & (1 << i)) >> i
 end
@@ -380,6 +392,14 @@ class Blerry
       raise "blerry_error", "no blerry_config.json found"
     end
 
+    # sanitize mac addresses to be upper case
+    var new_devices = {}
+    for k:self.user_config['devices'].keys()
+      var K = string_upper(k)
+      new_devices[K] = self.user_config['devices'][k]
+    end
+    self.user_config['devices'] = new_devices
+
     self.details_trigger = 'DetailsBLE'
     if self.user_config['advanced']['old_details']
       self.details_trigger = 'details'
@@ -502,13 +522,13 @@ class Blerry_Driver : Driver
           msg = msg + string.format("{s}%s{m}%s{e}", a.name, a.value)
         end
       end
-      if size(b.sensors)
+      if size(d.sensors)
         msg = msg + string.format("{s}-- Sensors --{m}<hr>{e}", d.alias)
         for s:d.sensors
           msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
         end
       end
-      if size(b.binary_sensors)
+      if size(d.binary_sensors)
         msg = msg + string.format("{s}-- Binary Sensors --{m}<hr>{e}", d.alias)
         for bs:d.binary_sensors
           msg = msg + string.format("{s}%s{m}%s{e}", bs.name, bs.value)
