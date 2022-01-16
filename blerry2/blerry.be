@@ -7,10 +7,42 @@
 #######################################################################
 
 import json
-import path
+var blerry_handle
+var blerry_active
 
 #######################################################################
-# Class for a Blerry Instance
+# Blerry_Device
+#######################################################################
+class Blerry_Device
+  var mac
+  var config
+  var handle
+  var active
+
+  def init(mac, config)
+    self.mac = mac
+    self.config = config
+    self.load_driver()
+  end
+
+  def load_driver()
+    var m = self.config['model']
+
+    var fn
+    if m == 'ATCpvvx' || m == 'ATC' || m == 'pvvx'
+      fn = 'blerry_model_ATCpvvx.be'
+    else
+      raise "blerry_error", "unknown model"
+    end
+    
+    load(fn)
+    self.handle = blerry_handle
+    self.active = blerry_active
+  end
+end
+
+#######################################################################
+# Class for Blerry Instance
 #######################################################################
 class Blerry
   var default_config
@@ -85,9 +117,15 @@ class Blerry
   end
 
   def setup_devices()
+    var active = false
     self.devices = []
     for m:self.device_config.keys()
-      self.devices.push(Blerry_Device(m, self.device_config[m]))
+      var bd = Blerry_Device(m, self.device_config[m])
+      self.devices.push(bd)
+      active = active || bd.active
+    end
+    if active
+      tasmota.cmd('BLEScan0 1')
     end
   end
 
@@ -111,16 +149,6 @@ class Blerry_Driver : Driver
   end
 end
 
-# Blerry_Device
-#   generalized representation of a device
-class Blerry_Device
-  var mac
-  var config
-  def init(mac, config)
-    self.mac = mac
-    self.config = config
-  end
-end
 
 # BLE_AdvData
 #   generalized representation of a BLE advertisement from DetailsBLE
