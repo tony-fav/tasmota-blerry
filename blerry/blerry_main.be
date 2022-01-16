@@ -107,7 +107,8 @@ for mac:user_config.keys()
 end
 
 # Load model handle functions only if used
-var model_drivers = {'GVH5075'   : 'blerry_model_GVH5075.be',
+var model_drivers = {'GVH5074'   : 'blerry_model_GVH5074.be',
+                     'GVH5075'   : 'blerry_model_GVH5075.be',
                      'GVH5072'   : 'blerry_model_GVH5075.be',
                      'GVH5101'   : 'blerry_model_GVH5075.be',
                      'GVH5102'   : 'blerry_model_GVH5075.be',
