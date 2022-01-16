@@ -6,6 +6,7 @@
 # Provides MQTT Discovery and Reporting for BLE Devices
 #######################################################################
 
+import math
 import json
 import path
 import string
@@ -85,6 +86,36 @@ class BLE_AdvData
 end
 
 #######################################################################
+# Blerry_Attribute
+#######################################################################
+class Blerry_Attribute
+  var name
+  var value
+
+  def init(name, value)
+    self.name = name
+    self.value = value
+  end
+end
+
+#######################################################################
+# Blerry_Sensor
+#######################################################################
+class Blerry_Sensor
+  var name
+  var dev_cla
+  var unit_of_meas
+  var value
+
+  def init(name, value, dev_cla, unit_of_meas)
+    self.name = name
+    self.value = value
+    self.dev_cla = dev_cla
+    self.unit_of_meas = unit_of_meas
+  end
+end
+
+#######################################################################
 # Blerry_Device
 #######################################################################
 class Blerry_Device
@@ -93,12 +124,26 @@ class Blerry_Device
   var alias
   var handle
   var active
+  var attributes
+  var sensors
+  var sensors_to_discover
+  var publish_available
+  var publish_priority
 
   def init(mac, config)
     self.mac = mac
     self.config = config
     self.alias = config['alias']
     self.load_driver()
+    self.attributes = {}
+    self.sensors = {}
+    self.sensors_to_discover = []
+
+    # static attributes
+    self.add_attribute('mac', self.mac)
+    self.add_attribute('alias', self.alias)
+    self.publish_available = false
+    self.publish_priority = 0
   end
 
   def load_driver()
@@ -125,6 +170,28 @@ class Blerry_Device
     load(fn)
     self.handle = blerry_handle
     self.active = blerry_active
+  end
+
+  def add_attribute(name, value)
+    self.attributes[name] = Blerry_Attribute(name, value)
+  end
+
+  def add_sensor_no_pub(name, value, dev_cla, unit_of_meas)
+    if !self.sensors.contains(name)
+      self.sensors_to_discover.push(name)
+    end
+    self.sensors[name] = Blerry_Sensor(name, value, dev_cla, unit_of_meas)
+  end
+
+  def add_sensor(name, value, dev_cla, unit_of_meas)
+    if !self.sensors.contains(name)
+      self.sensors[name] = Blerry_Sensor(name, value, dev_cla, unit_of_meas)
+      self.sensors_to_discover.push(name)
+      self.publish_available = true
+    elif self.sensors[name].value != value
+      self.sensors[name] = Blerry_Sensor(name, value, dev_cla, unit_of_meas)
+      self.publish_available = true
+    end
   end
 end
 
@@ -208,10 +275,12 @@ class Blerry
     var active = false
     self.devices = {}
     for m:self.device_config.keys()
-      var bd = Blerry_Device(m, self.device_config[m])
-      self.devices[m] = bd
-      active = active || bd.active
-      tasmota.cmd(string.format('BLEAlias %s=%s', bd.mac, bd.alias))
+      var device = Blerry_Device(m, self.device_config[m])
+      
+      # host based attributes here
+      self.devices[m] = device
+      active = active || device.active
+      tasmota.cmd(string.format('BLEAlias %s=%s', device.mac, device.alias))
     end
     if active
       tasmota.cmd('BLEScan0 1')
@@ -219,21 +288,21 @@ class Blerry
     tasmota.cmd('BLEDetails4')
   end
 
-  def DetailsBLE_callback(value, trigger, msg)
+  def handle_BLE_packet(value, trigger, msg)
     var advert = BLE_AdvData(bytes(value['p']))
-    print(value, trigger, msg)
     try
-      self.devices[value['mac']].handle(advert)
+      var device = self.devices[value['mac']]
+      device.handle(device, advert)
+      device.add_attribute('Time', tasmota.time_str(tasmota.rtc()['local']))
+      device.add_sensor_no_pub('RSSI', value['RSSI'], 'signal_strength', 'dB')
     except .. as e, m
       print('BLY: tried to handle mac =', value['mac'], 'with alias =', value['a'])
       raise e, m
     end
-    
-    print(value, trigger, msg)
   end
 
   def setup_packet_rule()
-    tasmota.add_rule('DetailsBLE', def (value, trigger, msg) self.DetailsBLE_callback(value, trigger, msg) end)
+    tasmota.add_rule('DetailsBLE', def (value, trigger, msg) self.handle_BLE_packet(value, trigger, msg) end)
   end
 
 end
@@ -243,7 +312,10 @@ end
 #   WebUI display of data
 # The goal of using a driver for publication is to rate limit ESP tasks a bit
 class Blerry_Driver : Driver
-  def init()
+  var b
+
+  def init(blerry_inst)
+    self.b = blerry_inst
   end
 
   def every_second()
@@ -257,3 +329,5 @@ class Blerry_Driver : Driver
 end
 
 blerry = Blerry()
+blerry_driver = Blerry_Driver(blerry)
+tasmota.add_driver(blerry_driver)
