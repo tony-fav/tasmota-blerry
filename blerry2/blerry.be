@@ -7,8 +7,82 @@
 #######################################################################
 
 import json
+import path
+import string
+
+# dev helper
+import introspect
+var dir = introspect.members
+
 var blerry_handle
 var blerry_active
+
+#######################################################################
+# BLE_AdvElement
+#######################################################################
+class BLE_AdvElement
+  var length
+  var type
+  var data
+
+  def init(l, t, d)
+    self.length = l
+    self.type = t
+    self.data = d
+  end
+end
+
+#######################################################################
+# BLE_AdvData
+#######################################################################
+class BLE_AdvData
+  var elements
+
+  def init(p)
+    var i = 0
+    var adv_len = 0
+    var adv_data = bytes('')
+    var adv_type = 0
+    self.elements = []
+    while i < size(p)
+      adv_len = p.get(i,1)
+      adv_type = p.get(i+1,1)
+      adv_data = p[i+2..i+adv_len]
+      self.elements.push(BLE_AdvElement(adv_len, adv_type, adv_data))
+      i = i + adv_len + 1
+    end
+  end
+
+  def get_elements_by_type(t)
+    var out = []
+    for e:self.elements
+      if e.type == t
+        out.push(e)
+      end
+    end
+    return out
+  end
+
+  def get_elements_by_type_length(t, l)
+    var out = []
+    for e:self.elements
+      if e.type == t && e.length == l
+        out.push(e)
+      end
+    end
+    return out
+  end
+
+  def get_elements_by_type_length_data(t, l, d, di, dl)
+    var out = []
+    for e:self.elements
+      if e.type == t && e.length == l && e.data[di..di+dl-1] == d
+        out.push(e)
+      end
+    end
+    return out
+  end
+end
 
 #######################################################################
 # Blerry_Device
@@ -16,25 +90,38 @@ var blerry_active
 class Blerry_Device
   var mac
   var config
+  var alias
   var handle
   var active
 
   def init(mac, config)
     self.mac = mac
     self.config = config
+    self.alias = config['alias']
     self.load_driver()
   end
 
   def load_driver()
-    var m = self.config['model']
-
-    var fn
-    if m == 'ATCpvvx' || m == 'ATC' || m == 'pvvx'
-      fn = 'blerry_model_ATCpvvx.be'
-    else
-      raise "blerry_error", "unknown model"
-    end
-    
+    var model_drivers = 
+    {
+      'GVH5075'   : 'blerry_model_GVH5075.be',
+      'GVH5072'   : 'blerry_model_GVH5075.be',
+      'GVH5101'   : 'blerry_model_GVH5075.be',
+      'GVH5102'   : 'blerry_model_GVH5075.be',
+      'GVH5182'   : 'blerry_model_GVH5182.be',
+      'GVH5183'   : 'blerry_model_GVH5183.be',
+      'GVH5184'   : 'blerry_model_GVH5184.be',
+      'ATCpvvx'   : 'blerry_model_ATCpvvx.be',
+      'ATC'       : 'blerry_model_ATCpvvx.be',
+      'pvvx'      : 'blerry_model_ATCpvvx.be',
+      'ATCmi'     : 'blerry_model_ATCmi.be',
+      'IBSTH1'    : 'blerry_model_IBSTH2.be',
+      'IBSTH2'    : 'blerry_model_IBSTH2.be',
+      'WoSensorTH': 'blerry_model_WoSensorTH.be',
+      'WoContact' : 'blerry_model_WoContact.be',
+      'WoPresence': 'blerry_model_WoPresence.be'
+    }
+    var fn = model_drivers[self.config['model']]    
     load(fn)
     self.handle = blerry_handle
     self.active = blerry_active
@@ -55,6 +142,7 @@ class Blerry
     self.load_user_config()
     self.setup_device_config()
     self.setup_devices()
+    self.setup_packet_rule()
   end
 
   # Load user config and default config from JSON files
@@ -123,10 +211,20 @@ class Blerry
       var bd = Blerry_Device(m, self.device_config[m])
       self.devices.push(bd)
       active = active || bd.active
+      tasmota.cmd(string.format('BLEAlias %s=%s', bd.mac, bd.alias))
     end
     if active
       tasmota.cmd('BLEScan0 1')
     end
+    tasmota.cmd('BLEDetails4')
+  end
+
+  static def DetailsBLE_callback(value, trigger, msg)
+    print(value, trigger, msg)
+  end
+
+  def setup_packet_rule()
+    tasmota.add_rule('DetailsBLE', self.DetailsBLE_callback)
   end
 
 end
@@ -146,23 +244,6 @@ class Blerry_Driver : Driver
   end
 
   def every_50ms()
-  end
-end
-
-
-# BLE_AdvData
-#   generalized representation of a BLE advertisement from DetailsBLE
-class BLE_AdvData
-  def init()
-    return 0
-  end
-end
-
-# BLE_AdvElement
-#   generalized representation of an element of a BLE advertisement from DetailsBLE
-class BLE_AdvElement
-  def init()
-    return 0
   end
 end
 
