@@ -24,6 +24,7 @@ def blerry_handle(device, advert)
     device.add_sensor('Battery', data.get(11,1), 'battery', '%')
     device.add_sensor('Battery_Voltage', data.get(12,-2)/1000.0, 'voltage', 'V')
     return true
+    
   else
     return false
   end

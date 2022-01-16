@@ -228,6 +228,7 @@ class Blerry_Device
   def load_driver()
     var model_drivers = 
     {
+      'dev'       : 'blerry_model_dev.be',
       'GVH5075'   : 'blerry_model_GVH5075.be',
       'GVH5072'   : 'blerry_model_GVH5075.be',
       'GVH5101'   : 'blerry_model_GVH5075.be',
@@ -361,9 +362,9 @@ class Blerry
   def load_user_config()  # based on persist module
     var f
     var val
-    if path.exists("blerry_user_config.json")
+    if path.exists("blerry_config.json")
       try
-        f = open("blerry_user_config.json", "r")
+        f = open("blerry_config.json", "r")
         val = json.load(f.read())
         f.close()
       except .. as e, m
@@ -373,10 +374,10 @@ class Blerry
       if isinstance(val, map)
         self.user_config = val
       else
-        raise "blerry_error", "failed to load blerry_user_config.json"
+        raise "blerry_error", "failed to load blerry_config.json"
       end
     else
-      raise "blerry_error", "no blerry_user_config.json found"
+      raise "blerry_error", "no blerry_config.json found"
     end
 
     self.details_trigger = 'DetailsBLE'
@@ -495,17 +496,23 @@ class Blerry_Driver : Driver
     for d:self.b.devices
       msg = msg + "{s}<hr>{m}<hr>{e}"
       msg = msg + "{s}BLErry Device{m}<hr>{e}"
-      msg = msg + string.format("{s}Attributes{m}<hr>{e}", d.alias)
-      for a:d.attributes
-        msg = msg + string.format("{s}%s{m}%s{e}", a.name, str(a.value))
+      if size(d.attributes)
+        msg = msg + string.format("{s}-- Attributes --{m}<hr>{e}", d.alias)
+        for a:d.attributes
+          msg = msg + string.format("{s}%s{m}%s{e}", a.name, a.value)
+        end
       end
-      msg = msg + string.format("{s}Sensors{m}<hr>{e}", d.alias)
-      for s:d.sensors
-        msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
+      if size(b.sensors)
+        msg = msg + string.format("{s}-- Sensors --{m}<hr>{e}", d.alias)
+        for s:d.sensors
+          msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
+        end
       end
-      msg = msg + string.format("{s}Binary Sensors{m}<hr>{e}", d.alias)
-      for bs:d.binary_sensors
-        msg = msg + string.format("{s}%s{m}%s{e}", bs.name, bs.value)
+      if size(b.binary_sensors)
+        msg = msg + string.format("{s}-- Binary Sensors --{m}<hr>{e}", d.alias)
+        for bs:d.binary_sensors
+          msg = msg + string.format("{s}%s{m}%s{e}", bs.name, bs.value)
+        end
       end
     end
     msg = msg + "{s}<hr>{m}<hr>{e}"
