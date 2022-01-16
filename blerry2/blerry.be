@@ -6,14 +6,58 @@
 # Provides MQTT Discovery and Reporting for BLE Devices
 #######################################################################
 
+#######################################################################
+# Module Imports
+#######################################################################
+
 import math
 import json
 import path
 import string
 
-# dev helper
+#######################################################################
+# Helpers
+#######################################################################
+
+def round(x, p)
+  return math.ceil(math.pow(10.0, p)*x)/math.pow(10.0, p)
+end
+
+def get_dewpoint(t, h) # temp, humidity
+  var gamma = math.log(h / 100.0) + 17.62 * t / (243.5 + t)
+  return (243.5 * gamma / (17.62 - gamma))
+end
+
+def string_replace(x, y, r)
+  var z = x[0..]
+  var n = size(y)
+  var m = size(r)
+  var k = 0
+  while k < size(z)
+    var j = string.find(z, y, k)
+    if j < 0
+      break
+    end
+    if j > 0
+      z = z[0..j-1] + r + z[j+n..]
+    else
+      z = r + z[j+n..]
+    end
+    k = j+m
+  end
+  return z
+end
+
+#######################################################################
+# Dev helpers bc I overuse dir when coding Python
+#######################################################################
+
 import introspect
 var dir = introspect.members
+
+#######################################################################
+# Required Globals for Driver Loading
+#######################################################################
 
 var blerry_handle
 var blerry_active
@@ -199,17 +243,45 @@ end
 # Class for Blerry Instance
 #######################################################################
 class Blerry
+  # blerry config
   var default_config
   var user_config
   var device_config
   var devices
+  var base_topic
+  var details_trigger
+  var discovery_retain
+
+  # tasmota config
+  var device_topic
+  var cmnd_prefix
+  var stat_prefix
+  var tele_prefix
+  var full_topic_f
+  var hostname
+  var device_tele_topic
+
 
   def init()
+    self.get_tasmota_settings()
     self.load_default_config()
     self.load_user_config()
     self.setup_device_config()
     self.setup_devices()
     self.setup_packet_rule()
+  end
+
+  def get_tasmota_settings()
+    self.device_topic = tasmota.cmd('Status')['Status']['Topic']
+    self.cmnd_prefix = tasmota.cmd('Prefix1')['Prefix1']
+    self.stat_prefix = tasmota.cmd('Prefix2')['Prefix2']
+    self.tele_prefix = tasmota.cmd('Prefix3')['Prefix3']
+    self.full_topic_f = tasmota.cmd('FullTopic')['FullTopic']
+    self.hostname = tasmota.cmd('Status 5')['StatusNET']['Hostname']
+    self.device_tele_topic = string_replace(string_replace(self.full_topic_f, '%prefix%', self.tele_prefix), '%topic%', self.device_topic)
+    if self.device_tele_topic[-1] == '/' # allow / at the end but remove it here
+    self.device_tele_topic = self.device_tele_topic[0..-2]
+    end
   end
 
   # Load user config and default config from JSON files
@@ -235,6 +307,17 @@ class Blerry
     else
       raise "blerry_error", "no blerry_user_config.json found"
     end
+
+    self.base_topic = self.user_config['base_topic']
+    if self.base_topic[-1] == '/' # allow / at the end but remove it here
+      self.base_topic = self.base_topic[0..-2]
+    end
+    self.details_trigger = 'DetailsBLE'
+    if self.user_config['advanced']['old_details']
+      self.details_trigger = 'details'
+    end
+    self.discovery_retain = self.user_config['advanced']['discovery_retain']
+
   end
 
   def load_default_config()
@@ -302,15 +385,17 @@ class Blerry
   end
 
   def setup_packet_rule()
-    tasmota.add_rule('DetailsBLE', def (value, trigger, msg) self.handle_BLE_packet(value, trigger, msg) end)
+    tasmota.add_rule(self.details_trigger, def (value, trigger, msg) self.handle_BLE_packet(value, trigger, msg) end)
   end
 
 end
 
+#######################################################################
 # Blerry_Driver
 #   periodic publication of data
 #   WebUI display of data
 # The goal of using a driver for publication is to rate limit ESP tasks a bit
+#######################################################################
 class Blerry_Driver : Driver
   var b
 
@@ -325,6 +410,17 @@ class Blerry_Driver : Driver
   end
 
   def every_50ms()
+  end
+
+  def web_sensor()
+    var msg = ""
+    for d:self.b.devices
+      msg = msg + string.format("{s}-- BLErry Device --{m}-- Model: %s --{e}", d.config['model'])
+      for s:d.sensors
+        msg = msg + string.format("{s}%s %s{m}%g %s{e}", d.alias, s.name, s.value, s.unit_of_meas)
+      end
+    end
+    tasmota.web_send_decimal(msg)
   end
 end
 
