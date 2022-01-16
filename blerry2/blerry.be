@@ -48,6 +48,10 @@ def string_replace(x, y, r)
   return z
 end
 
+def bitval(x, i)
+  return (x & (1 << i)) >> i
+end
+
 #######################################################################
 # Dev helpers bc I overuse dir when coding Python
 #######################################################################
@@ -160,6 +164,26 @@ class Blerry_Sensor
 end
 
 #######################################################################
+# Blerry_Binary_Sensor
+#######################################################################
+class Blerry_Binary_Sensor
+  var name
+  var dev_cla
+  var unit_of_meas
+  var value
+
+  def init(name, value, dev_cla)
+    self.name = name
+    if value
+      self.value = 'ON'
+    else
+      self.value = 'OFF'
+    end
+    self.dev_cla = dev_cla
+  end
+end
+
+#######################################################################
 # Blerry_Device
 #######################################################################
 class Blerry_Device
@@ -171,6 +195,8 @@ class Blerry_Device
   var attributes
   var sensors
   var sensors_to_discover
+  var binary_sensors
+  var binary_sensors_to_discover
   var publish_available
   var publish_priority
 
@@ -182,10 +208,13 @@ class Blerry_Device
     self.attributes = {}
     self.sensors = {}
     self.sensors_to_discover = []
+    self.binary_sensors = {}
+    self.binary_sensors_to_discover = []
 
     # static attributes
-    self.add_attribute('mac', self.mac)
-    self.add_attribute('alias', self.alias)
+    self.add_attribute('MAC', self.mac)
+    self.add_attribute('Alias', self.alias)
+    self.add_attribute('Model', self.config['model'])
     self.publish_available = false
     self.publish_priority = 0
   end
@@ -237,6 +266,24 @@ class Blerry_Device
       self.publish_available = true
     end
   end
+
+  def add_binary_sensor_no_pub(name, value, dev_cla)
+    if !self.binary_sensors.contains(name)
+      self.binary_sensors_to_discover.push(name)
+    end
+    self.binary_sensors[name] = Blerry_Binary_Sensor(name, value, dev_cla)
+  end
+
+  def add_binary_sensor(name, value, dev_cla)
+    if !self.binary_sensors.contains(name)
+      self.binary_sensors[name] = Blerry_Binary_Sensor(name, value, dev_cla)
+      self.binary_sensors_to_discover.push(name)
+      self.publish_available = true
+    elif self.binary_sensors[name].value != value
+      self.binary_sensors[name] = Blerry_Binary_Sensor(name, value, dev_cla)
+      self.publish_available = true
+    end
+  end
 end
 
 #######################################################################
@@ -248,9 +295,7 @@ class Blerry
   var user_config
   var device_config
   var devices
-  var base_topic
   var details_trigger
-  var discovery_retain
 
   # tasmota config
   var device_topic
@@ -308,7 +353,6 @@ class Blerry
       raise "blerry_error", "no blerry_user_config.json found"
     end
 
-    self.base_topic = self.user_config['base_topic']
     if self.base_topic[-1] == '/' # allow / at the end but remove it here
       self.base_topic = self.base_topic[0..-2]
     end
@@ -316,23 +360,24 @@ class Blerry
     if self.user_config['advanced']['old_details']
       self.details_trigger = 'details'
     end
-    self.discovery_retain = self.user_config['advanced']['discovery_retain']
-
   end
 
   def load_default_config()
     self.default_config = 
     {
+      'base_topic': 'tele/tasmota_blerry',
       'discovery': false,
+      'discovery_retain': true,
       'use_lwt': false,
       'via_pubs': false,
       'sensor_retain': false,
       'publish_attributes': false,
+      'calculate_dewpoint': true,
       'precision': 
       {
-          'Temperature': 2,
-          'Humidity': 1,
-          'Battery': 0
+        'Temperature': 2,
+        'Humidity': 1,
+        'Battery': 0
       }
     }
   end
@@ -385,7 +430,8 @@ class Blerry
   end
 
   def setup_packet_rule()
-    tasmota.add_rule(self.details_trigger, def (value, trigger, msg) self.handle_BLE_packet(value, trigger, msg) end)
+    # tasmota.add_rule(self.details_trigger, def (value, trigger, msg) self.handle_BLE_packet(value, trigger, msg) end)
+    tasmota.add_rule(self.details_trigger, / value, trigger, msg -> self.handle_BLE_packet(value, trigger, msg)) # "I prefer a lambda for the closure...." - sfromis
   end
 
 end
@@ -416,14 +462,21 @@ class Blerry_Driver : Driver
     var msg = ""
     for d:self.b.devices
       msg = msg + "{s}<hr>{m}<hr>{e}"
-      msg = msg + string.format("{s}-- BLErry Device --{m}-- Model: %s --{e}", d.config['model'])
-      for s:d.sensors
-        msg = msg + string.format("{s}%s %s{m}%g %s{e}", d.alias, s.name, s.value, s.unit_of_meas)
-      end
+      msg = msg + "{s}BLErry Device{m}<hr>{e}"
+      msg = msg + string.format("{s}Attributes{m}<hr>{e}", d.alias)
       for a:d.attributes
-        msg = msg + string.format("{s}%s %s{m} %s{e}", d.alias, a.name, str(a.value))
+        msg = msg + string.format("{s}%s{m}%s{e}", a.name, str(a.value))
+      end
+      msg = msg + string.format("{s}Sensors{m}<hr>{e}", d.alias)
+      for s:d.sensors
+        msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
+      end
+      msg = msg + string.format("{s}Binary Sensors{m}<hr>{e}", d.alias)
+      for bs:d.binary_sensors
+        msg = msg + string.format("{s}%s{m}%s{e}", bs.name, bs.value)
       end
     end
+    msg = msg + "{s}<hr>{m}<hr>{e}"
     tasmota.web_send_decimal(msg)
   end
 end

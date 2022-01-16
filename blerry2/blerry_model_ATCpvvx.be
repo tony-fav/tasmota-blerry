@@ -9,8 +9,12 @@ def blerry_handle(device, advert)
     device.add_sensor('Battery_Voltage', data.get(12,2)/1000.0, 'voltage', 'V')
     device.add_sensor('Battery', data.get(14,1), 'battery', '%')
     device.add_attribute('Count', data.get(15,1))
-    device.add_attribute('Flag', data.get(16,1))
-    # need to add the binary sensors
+    var flag = data.get(16,1)
+    device.add_attribute('Flag', flag)
+    device.add_binary_sensor('GPIO_PA6', bitval(flag, 0), 'none')
+    device.add_binary_sensor('GPIO_PA5', bitval(flag, 1), 'none')
+    device.add_binary_sensor('Triggered_by_Temperature', bitval(flag, 2), 'none')
+    device.add_binary_sensor('Triggered_by_Humidity', bitval(flag, 3), 'none')
     return true
 
   elif size(elements_ATC)

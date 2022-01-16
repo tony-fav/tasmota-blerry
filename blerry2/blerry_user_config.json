@@ -1,5 +1,4 @@
 {
-   "base_topic": "tele/tasmota_blerry",
    "devices": {
      "A4C138000000": {
        "alias": "example_ATC_or_PVVX",
@@ -55,7 +54,8 @@
      }
    },
    "override": {
-     "discovery": false,
+     "base_topic": "tele/tasmota_blerry",
+     "discovery": true,
      "precision": {
        "Temperature": 1,
        "Humidity": 0,
@@ -63,7 +63,6 @@
      }
    },
    "advanced": {
-     "old_details": false,
-     "discovery_retain": true
+     "old_details": false
    }
  }

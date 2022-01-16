@@ -1,4 +1,3 @@
-base_topic: tele/tasmota_blerry
 devices:
   A4C138000000:
     alias: example_ATC_or_PVVX
@@ -40,11 +39,11 @@ devices:
     alias: sbot_motion
     model: WoPresence
 override:
-  discovery: false
+  base_topic: tele/tasmota_blerry
+  discovery: true
   precision:
     Temperature: 1
     Humidity: 0
     Battery: -1
 advanced:
   old_details: false
-  discovery_retain: true
