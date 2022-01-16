@@ -73,10 +73,10 @@ class BLE_AdvData
     return out
   end
 
-  def get_elements_by_type_length_data(t, l, d, di, dl)
+  def get_elements_by_type_length_data(t, l, d, di)
     var out = []
     for e:self.elements
-      if e.type == t && e.length == l && e.data[di..di+dl-1] == d
+      if e.type == t && e.length == l && e.data[di..di+size(d)-1] == d
         out.push(e)
       end
     end
@@ -206,10 +206,10 @@ class Blerry
 
   def setup_devices()
     var active = false
-    self.devices = []
+    self.devices = {}
     for m:self.device_config.keys()
       var bd = Blerry_Device(m, self.device_config[m])
-      self.devices.push(bd)
+      self.devices[m] = bd
       active = active || bd.active
       tasmota.cmd(string.format('BLEAlias %s=%s', bd.mac, bd.alias))
     end
@@ -219,12 +219,21 @@ class Blerry
     tasmota.cmd('BLEDetails4')
   end
 
-  static def DetailsBLE_callback(value, trigger, msg)
+  def DetailsBLE_callback(value, trigger, msg)
+    var advert = BLE_AdvData(bytes(value['p']))
+    print(value, trigger, msg)
+    try
+      self.devices[value['mac']].handle(advert)
+    except .. as e, m
+      print('BLY: tried to handle mac =', value['mac'], 'with alias =', value['a'])
+      raise e, m
+    end
+    
     print(value, trigger, msg)
   end
 
   def setup_packet_rule()
-    tasmota.add_rule('DetailsBLE', self.DetailsBLE_callback)
+    tasmota.add_rule('DetailsBLE', def (value, trigger, msg) self.DetailsBLE_callback(value, trigger, msg) end)
   end
 
 end
