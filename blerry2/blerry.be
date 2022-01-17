@@ -9,8 +9,8 @@
 # TODO
 #   Add 'calibration' support
 #   Add 'precision' support
-#   Add 'via_pubs' support
 #   Add 'calculate_dewpoint' support
+#   Add keep alive publications
 
 #######################################################################
 # Module Imports
@@ -326,6 +326,10 @@ class Blerry_Device
       for bs:self.binary_sensors
         msg[bs.name] = bs.value
       end
+      if self.config['via_pubs']
+        msg['Time_via_' + self.b.device_topic] = msg['Time']
+        msg['RSSI_via_' + self.b.device_topic] = msg['RSSI']
+      end
       tasmota.publish(self.topic, json.dump(msg), self.config['sensor_retain'])
       if self.config['publish_attributes']
         for k:msg.keys()
@@ -583,6 +587,9 @@ class Blerry
     end
   end
 
+  def load_success()
+    print('BLY: BLErry V2 Loaded Successfully')
+  end
 end
 
 #######################################################################
@@ -641,3 +648,4 @@ end
 blerry = Blerry()
 blerry_driver = Blerry_Driver(blerry)
 tasmota.add_driver(blerry_driver)
+blerry.load_success()
