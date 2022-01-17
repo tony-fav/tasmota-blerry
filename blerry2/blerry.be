@@ -623,7 +623,9 @@ class Blerry
     var advert = BLE_AdvData(bytes(value['p']))
     try
       var device = self.devices[value['mac']]
-      device.handle(device, advert)
+      # device.handle(device, advert)
+      var handle_f = device.handle
+      handle_f(device, advert)
       device.add_attribute('Time', tasmota.time_str(tasmota.rtc()['local']))
       device.add_sensor_no_pub('RSSI', value['RSSI'], 'signal_strength', 'dB')
     except .. as e, m
