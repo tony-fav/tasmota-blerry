@@ -8,7 +8,6 @@
 
 # TODO
 #   Add 'precision' support
-#   Add 'calculate_dewpoint' support
 #   Add keep alive publications
 
 #######################################################################
@@ -250,22 +249,22 @@ class Blerry_Device
     var model_drivers = 
     {
       'dev'       : 'blerry_model_dev.be',
-      'GVH5075'   : 'blerry_model_GVH5075.be',
-      'GVH5072'   : 'blerry_model_GVH5075.be',
-      'GVH5101'   : 'blerry_model_GVH5075.be',
-      'GVH5102'   : 'blerry_model_GVH5075.be',
-      'GVH5182'   : 'blerry_model_GVH5182.be',
-      'GVH5183'   : 'blerry_model_GVH5183.be',
-      'GVH5184'   : 'blerry_model_GVH5184.be',
       'ATCpvvx'   : 'blerry_model_ATCpvvx.be',
       'ATC'       : 'blerry_model_ATCpvvx.be',
       'pvvx'      : 'blerry_model_ATCpvvx.be',
-      'ATCmi'     : 'blerry_model_ATCmi.be',
-      'IBSTH1'    : 'blerry_model_IBSTH2.be',
-      'IBSTH2'    : 'blerry_model_IBSTH2.be',
-      'WoSensorTH': 'blerry_model_WoSensorTH.be',
-      'WoContact' : 'blerry_model_WoContact.be',
-      'WoPresence': 'blerry_model_WoPresence.be'
+      # 'GVH5075'   : 'blerry_model_GVH5075.be',
+      # 'GVH5072'   : 'blerry_model_GVH5075.be',
+      # 'GVH5101'   : 'blerry_model_GVH5075.be',
+      # 'GVH5102'   : 'blerry_model_GVH5075.be',
+      # 'GVH5182'   : 'blerry_model_GVH5182.be',
+      # 'GVH5183'   : 'blerry_model_GVH5183.be',
+      # 'GVH5184'   : 'blerry_model_GVH5184.be',
+      # 'ATCmi'     : 'blerry_model_ATCmi.be',
+      # 'IBSTH1'    : 'blerry_model_IBSTH2.be',
+      # 'IBSTH2'    : 'blerry_model_IBSTH2.be',
+      # 'WoSensorTH': 'blerry_model_WoSensorTH.be',
+      # 'WoContact' : 'blerry_model_WoContact.be',
+      # 'WoPresence': 'blerry_model_WoPresence.be',
     }
     var fn = model_drivers[self.config['model']]    
     load(fn)
@@ -345,8 +344,6 @@ class Blerry_Device
           end
         end
       end
-
-      # extra calculations
 
       # precision
 
@@ -533,7 +530,6 @@ class Blerry
       'via_pubs': false,
       'sensor_retain': false,
       'publish_attributes': false,
-      'calculate_dewpoint': true,
       'precision': 
       {
         'Temperature': 2,

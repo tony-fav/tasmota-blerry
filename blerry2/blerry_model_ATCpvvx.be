@@ -4,8 +4,12 @@ def blerry_handle(device, advert)
 
   if size(elements_PVVX)
     var data = elements_PVVX[0].data
-    device.add_sensor('Temperature', data.geti(8,2)/100.0,  'temperature', '°C')
-    device.add_sensor('Humidity', data.get(10,2)/100.0, 'humidity', '%')
+    var t = data.geti(8,2)/100.0
+    var h = data.get(10,2)/100.0
+    var dewp = blerry_helpers.get_dewpoint(t, h)
+    device.add_sensor('Temperature', t,  'temperature', '°C')
+    device.add_sensor('Humidity', h, 'humidity', '%')
+    device.add_sensor('DewPoint', dewp, 'temperature', '°C')
     device.add_sensor('Battery_Voltage', data.get(12,2)/1000.0, 'voltage', 'V')
     device.add_sensor('Battery', data.get(14,1), 'battery', '%')
     device.add_attribute('Count', data.get(15,1))
@@ -19,8 +23,12 @@ def blerry_handle(device, advert)
 
   elif size(elements_ATC)
     var data = elements_ATC[0].data
-    device.add_sensor('Temperature', data.geti(8,-2)/10.0,  'temperature', '°C')
-    device.add_sensor('Humidity', data.get(10,1), 'humidity', '%')
+    var t = data.geti(8,-2)/10.0
+    var h = data.get(10,1)
+    var dewp = blerry_helpers.get_dewpoint(t, h)
+    device.add_sensor('Temperature', t,  'temperature', '°C')
+    device.add_sensor('Humidity', h, 'humidity', '%')
+    device.add_sensor('DewPoint', dewp, 'temperature', '°C')
     device.add_sensor('Battery', data.get(11,1), 'battery', '%')
     device.add_sensor('Battery_Voltage', data.get(12,-2)/1000.0, 'voltage', 'V')
     return true
