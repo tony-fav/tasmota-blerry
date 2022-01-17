@@ -7,7 +7,6 @@
 #######################################################################
 
 # TODO
-#   Add 'calibration' support
 #   Add 'precision' support
 #   Add 'calculate_dewpoint' support
 #   Add keep alive publications
@@ -330,6 +329,27 @@ class Blerry_Device
         msg['Time_via_' + self.b.device_topic] = msg['Time']
         msg['RSSI_via_' + self.b.device_topic] = msg['RSSI']
       end
+
+      # calibration
+      if self.config.contains('calibration')       # if calibration is defined in the config
+        for k:self.config['calibration'].keys()    # loop over sensors being calibrated
+          if msg.contains(k)                       # if we have that sensor value to calibrate
+            var c = self.config['calibration'][k]  # calibration has to be a list
+            if isinstance(c, list)
+              if size(c) == 1                      # size 1 = just a delta
+                msg[k] = c[0] + msg[k]
+              elif size(c) == 2
+                msg[k] = c[0] + c[1]*msg[k]        # size 2 = delta and slope
+              end
+            end
+          end
+        end
+      end
+
+      # extra calculations
+
+      # precision
+
       tasmota.publish(self.topic, json.dump(msg), self.config['sensor_retain'])
       if self.config['publish_attributes']
         for k:msg.keys()
@@ -608,12 +628,6 @@ class Blerry_Driver : Driver
   def every_second()
     self.b.publish_discovery()
     self.b.publish()
-  end
-
-  def every_100ms()
-  end
-
-  def every_50ms()
   end
 
   def web_sensor()
