@@ -6,6 +6,12 @@
 # Provides MQTT Discovery and Reporting for BLE Devices
 #######################################################################
 
+# TODO
+#   Add 'calibration' support
+#   Add 'precision' support
+#   Add 'via_pubs' support
+#   Add 'calculate_dewpoint' support
+
 #######################################################################
 # Module Imports
 #######################################################################
@@ -332,35 +338,43 @@ class Blerry_Device
 
   def publish_discovery()
     self.publish_sensor_discovery()
+    self.publish_binary_sensor_discovery()
+  end
+
+  def get_discovery_packet_base() # Make each time so it can be GC'd. Don't save as a member of the class.
+    var msg = {}
+
+    # LWT Part
+    if self.config['use_lwt']
+      msg['avty_t'] = self.b.device_tele_topic + '/LWT'
+      msg['pl_avail'] = 'Online'
+      msg['pl_not_avail'] = 'Offline'
+    else
+      msg['avty'] = []
+    end
+
+    # Device Association Part
+    msg['dev'] = {}
+    msg['dev']['ids'] = [('blerry_' + self.alias)]
+    msg['dev']['name'] = self.alias
+    msg['dev']['mf'] = 'BLErry2'
+    msg['dev']['mdl'] = self.config['model']
+    msg['dev']['via_device'] = self.b.hostname
+
+    # Topic Part
+    msg['json_attr_t'] = self.topic
+    msg['stat_t'] = self.topic
+
+    return msg
   end
 
   def publish_sensor_discovery()
     var topic_fmt = 'homeassistant/sensor/blerry_' + self.alias + '/%s/config'
     if size(self.sensors_to_discover)
-      var msg = {}
+      var msg = self.get_discovery_packet_base()
 
-      # Make the parts associated with the device, not the sensor
-      # LWT Part
-      if self.config['use_lwt']
-        msg['avty_t'] = self.b.device_tele_topic + '/LWT'
-        msg['pl_avail'] = 'Online'
-        msg['pl_not_avail'] = 'Offline'
-      else
-        msg['avty'] = []
-      end
-
-      # Device Association Part
-      msg['dev'] = {}
-      msg['dev']['ids'] = [('blerry_' + self.alias)]
-      msg['dev']['name'] = self.alias
-      msg['dev']['mf'] = 'BLErry2'
-      msg['dev']['mdl'] = self.config['model']
-      msg['dev']['via_device'] = self.b.hostname
-
-      # Topic Part
+      # sensor timeout
       msg['exp_aft'] = 600
-      msg['json_attr_t'] = self.topic
-      msg['stat_t'] = self.topic
 
       # the parts that are unique to each sensor
       for s:self.sensors_to_discover
@@ -375,6 +389,31 @@ class Blerry_Device
         tasmota.publish(string.format(topic_fmt, s), json.dump(msg), self.config['discovery_retain'])
       end
       self.sensors_to_discover = []
+    end
+  end
+
+  def publish_binary_sensor_discovery()
+    var topic_fmt = 'homeassistant/binary_sensor/blerry_' + self.alias + '/%s/config'
+    if size(self.binary_sensors_to_discover)
+      var msg = self.get_discovery_packet_base()
+
+      # sensor timeout
+      msg['exp_aft'] = 600
+
+      # the parts that are unique to each sensor
+      for s:self.binary_sensors_to_discover
+        msg['name'] = self.alias + ' ' + self.binary_sensors[s].name
+        msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.binary_sensors[s].name
+        if self.binary_sensors[s].dev_cla != 'none'
+          msg['dev_cla'] = self.binary_sensors[s].dev_cla
+        end
+        msg['val_tpl'] = '{{ value_json.' + self.binary_sensors[s].name + ' }}'
+
+        # Here, I can implement an override from the config
+
+        tasmota.publish(string.format(topic_fmt, s), json.dump(msg), self.config['discovery_retain'])
+      end
+      self.binary_sensors_to_discover = []
     end
   end
 end
@@ -418,7 +457,7 @@ class Blerry
     self.hostname = tasmota.cmd('Status 5')['StatusNET']['Hostname']
     self.device_tele_topic = blerry_helpers.string_replace(blerry_helpers.string_replace(self.full_topic_f, '%prefix%', self.tele_prefix), '%topic%', self.device_topic)
     if self.device_tele_topic[-1] == '/' # allow / at the end but remove it here
-    self.device_tele_topic = self.device_tele_topic[0..-2]
+      self.device_tele_topic = self.device_tele_topic[0..-2]
     end
   end
 
