@@ -19,49 +19,51 @@ import string
 # Helpers
 #######################################################################
 
-def round(x, p)
-  return math.ceil(math.pow(10.0, p)*x)/math.pow(10.0, p)
-end
-
-def get_dewpoint(t, h) # temp, humidity
-  var gamma = math.log(h / 100.0) + 17.62 * t / (243.5 + t)
-  return (243.5 * gamma / (17.62 - gamma))
-end
-
-def string_replace(x, y, r)
-  var z = x[0..]
-  var n = size(y)
-  var m = size(r)
-  var k = 0
-  while k < size(z)
-    var j = string.find(z, y, k)
-    if j < 0
-      break
-    end
-    if j > 0
-      z = z[0..j-1] + r + z[j+n..]
-    else
-      z = r + z[j+n..]
-    end
-    k = j+m
+class blerry_helpers
+  static def round(x, p)
+    return math.ceil(math.pow(10.0, p)*x)/math.pow(10.0, p)
   end
-  return z
-end
 
-def string_upper(x)
-  var y = ''
-  for i:0..size(x)-1
-    var b = string.byte(x[i])
-    if b >= 97 && b <= 122
-      b = b - 32
-    end
-    y = y + string.char(b)
+  static def get_dewpoint(t, h) # temp, humidity
+    var gamma = math.log(h / 100.0) + 17.62 * t / (243.5 + t)
+    return (243.5 * gamma / (17.62 - gamma))
   end
-  return y
-end
 
-def bitval(x, i)
-  return (x & (1 << i)) >> i
+  static def string_replace(x, y, r)
+    var z = x[0..]
+    var n = size(y)
+    var m = size(r)
+    var k = 0
+    while k < size(z)
+      var j = string.find(z, y, k)
+      if j < 0
+        break
+      end
+      if j > 0
+        z = z[0..j-1] + r + z[j+n..]
+      else
+        z = r + z[j+n..]
+      end
+      k = j+m
+    end
+    return z
+  end
+
+  static def string_upper(x)
+    var y = ''
+    for i:0..size(x)-1
+      var b = string.byte(x[i])
+      if b >= 97 && b <= 122
+        b = b - 32
+      end
+      y = y + string.char(b)
+    end
+    return y
+  end
+
+  static def bitval(x, i)
+    return (x & (1 << i)) >> i
+  end
 end
 
 #######################################################################
@@ -414,7 +416,7 @@ class Blerry
     self.tele_prefix = tasmota.cmd('Prefix3')['Prefix3']
     self.full_topic_f = tasmota.cmd('FullTopic')['FullTopic']
     self.hostname = tasmota.cmd('Status 5')['StatusNET']['Hostname']
-    self.device_tele_topic = string_replace(string_replace(self.full_topic_f, '%prefix%', self.tele_prefix), '%topic%', self.device_topic)
+    self.device_tele_topic = blerry_helpers.string_replace(blerry_helpers.string_replace(self.full_topic_f, '%prefix%', self.tele_prefix), '%topic%', self.device_topic)
     if self.device_tele_topic[-1] == '/' # allow / at the end but remove it here
     self.device_tele_topic = self.device_tele_topic[0..-2]
     end
@@ -447,7 +449,7 @@ class Blerry
     # sanitize mac addresses to be upper case
     var new_devices = {}
     for k:self.user_config['devices'].keys()
-      var K = string_upper(k)
+      var K = blerry_helpers.string_upper(k)
       new_devices[K] = self.user_config['devices'][k]
     end
     self.user_config['devices'] = new_devices
