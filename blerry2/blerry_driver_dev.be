@@ -11,3 +11,4 @@ def blerry_handle(device, advert)
   return true
 end
 blerry_active = true
+print('BLR: Driver: dev Loaded')

@@ -297,6 +297,8 @@ class Blerry_Device
       # 'WoPresence'      : 'blerry_driver_WoPresence.be',
     }
     var fn = model_drivers[self.config['model']]    
+    blerry_handle = def () print('BLY: Driver did not load properly') end
+    blerry_active = false
     load(fn)
     self.handle = blerry_handle
     self.active = blerry_active
