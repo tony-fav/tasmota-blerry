@@ -81,6 +81,13 @@ class blerry_helpers
   static def bitval(x, i)
     return (x & (1 << i)) >> i
   end
+
+  static def twos_complement(n, w)
+    if n & (1 << (w - 1))
+      n = n - (1 << w)
+    end
+    return n
+  end
 end
 
 #######################################################################
@@ -265,6 +272,7 @@ class Blerry_Device
       'ATCpvvx'   : 'blerry_model_ATCpvvx.be',
       'ATC'       : 'blerry_model_ATCpvvx.be',
       'pvvx'      : 'blerry_model_ATCpvvx.be',
+      'GVH5074'   : 'blerry_model_GVH5074.be',
       # 'GVH5075'   : 'blerry_model_GVH5075.be',
       # 'GVH5072'   : 'blerry_model_GVH5075.be',
       # 'GVH5101'   : 'blerry_model_GVH5075.be',
@@ -535,8 +543,12 @@ class Blerry
     self.user_config['devices'] = new_devices
 
     self.details_trigger = 'DetailsBLE'
-    if self.user_config['advanced']['old_details']
-      self.details_trigger = 'details'
+    if self.user_config.contains('advanced')
+      if self.user_config['advanced'].contains('old_details')
+        if self.user_config['advanced']['old_details']
+          self.details_trigger = 'details'
+        end
+      end
     end
   end
 
@@ -571,8 +583,10 @@ class Blerry
       for k:self.user_config['devices'][m].keys()
         self.device_config[m][k] = self.user_config['devices'][m][k]
       end
-      for k:self.user_config['override'].keys()
-        self.device_config[m][k] = self.user_config['override'][k]
+      if self.user_config.contains('override')
+        for k:self.user_config['override'].keys()
+          self.device_config[m][k] = self.user_config['override'][k]
+        end
       end
     end
   end
