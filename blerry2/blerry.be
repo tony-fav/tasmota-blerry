@@ -6,6 +6,8 @@
 # Provides MQTT Discovery and Reporting for BLE Devices
 #######################################################################
 
+var blerry_version = 'v0.2.0-dev'
+
 # TODO
 #   Add keep alive publications
 #   Port V1 Drivers to V2
@@ -400,7 +402,7 @@ class Blerry_Device
     msg['dev'] = {}
     msg['dev']['ids'] = [('blerry_' + self.alias)]
     msg['dev']['name'] = self.alias
-    msg['dev']['mf'] = 'BLErry2'
+    msg['dev']['mf'] = 'BLErry ' + blerry_version
     msg['dev']['mdl'] = self.config['model']
     msg['dev']['via_device'] = self.b.hostname
 
@@ -633,7 +635,7 @@ class Blerry
   end
 
   def load_success()
-    print('BLY: BLErry V2 Loaded Successfully')
+    print('BLY: BLErry ' + blerry_version + ' Loaded Successfully')
   end
 end
 
