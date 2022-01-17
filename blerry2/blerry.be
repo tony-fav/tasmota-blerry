@@ -287,6 +287,7 @@ class Blerry_Device
       'IBSTH1'          : 'blerry_driver_IBSTH2.be',
       'IBSTH2'          : 'blerry_driver_IBSTH2.be',
       'Xiaomi_LYWSDCGQ' : 'blerry_driver_Xiaomi_LYWSDCGQ.be',
+      'ThermoPro_TP59'  : 'blerry_driver_ThermoPro_TP59.be',
       # 'GVH5182'         : 'blerry_driver_GVH5182.be',
       # 'GVH5183'         : 'blerry_driver_GVH5183.be',
       # 'GVH5184'         : 'blerry_driver_GVH5184.be',
