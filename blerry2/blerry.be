@@ -10,6 +10,7 @@ var blerry_version = 'v0.2.0-dev'
 
 # TODO
 #   Add keep alive publications
+#   Make Drivers into Classes so they can have some static methods
 #   Port V1 Drivers to V2
       # 'GVH5182'   : 'blerry_driver_GVH5182.be',
       # 'GVH5183'   : 'blerry_driver_GVH5183.be',
@@ -156,6 +157,16 @@ class BLE_AdvData
     return out
   end
 
+  def get_elements_by_type_data(t, d, di)
+    var out = []
+    for e:self.elements
+      if e.type == t && e.data[di..di+size(d)-1] == d
+        out.push(e)
+      end
+    end
+    return out
+  end
+
   def get_elements_by_type_length_data(t, l, d, di)
     var out = []
     for e:self.elements
@@ -264,24 +275,25 @@ class Blerry_Device
   def load_driver()
     var model_drivers = 
     {
-      'dev'       : 'blerry_driver_dev.be',
-      'ATCpvvx'   : 'blerry_driver_ATCpvvx.be',
-      'ATC'       : 'blerry_driver_ATCpvvx.be',
-      'pvvx'      : 'blerry_driver_ATCpvvx.be',
-      'GVH5074'   : 'blerry_driver_GVH5074.be',
-      'GVH5075'   : 'blerry_driver_GVH5075.be',
-      'GVH5072'   : 'blerry_driver_GVH5075.be',
-      'GVH5101'   : 'blerry_driver_GVH5075.be',
-      'GVH5102'   : 'blerry_driver_GVH5075.be',
-      'IBSTH1'    : 'blerry_driver_IBSTH2.be',
-      'IBSTH2'    : 'blerry_driver_IBSTH2.be',
-      # 'GVH5182'   : 'blerry_driver_GVH5182.be',
-      # 'GVH5183'   : 'blerry_driver_GVH5183.be',
-      # 'GVH5184'   : 'blerry_driver_GVH5184.be',
-      # 'ATCmi'     : 'blerry_driver_ATCmi.be',
-      # 'WoSensorTH': 'blerry_driver_WoSensorTH.be',
-      # 'WoContact' : 'blerry_driver_WoContact.be',
-      # 'WoPresence': 'blerry_driver_WoPresence.be',
+      'dev'             : 'blerry_driver_dev.be',
+      'ATCpvvx'         : 'blerry_driver_ATCpvvx.be',
+      'ATC'             : 'blerry_driver_ATCpvvx.be',
+      'pvvx'            : 'blerry_driver_ATCpvvx.be',
+      'GVH5074'         : 'blerry_driver_GVH5074.be',
+      'GVH5075'         : 'blerry_driver_GVH5075.be',
+      'GVH5072'         : 'blerry_driver_GVH5075.be',
+      'GVH5101'         : 'blerry_driver_GVH5075.be',
+      'GVH5102'         : 'blerry_driver_GVH5075.be',
+      'IBSTH1'          : 'blerry_driver_IBSTH2.be',
+      'IBSTH2'          : 'blerry_driver_IBSTH2.be',
+      'Xiaomi_LYWSDCGQ' : 'blerry_driver_Xiaomi_LYWSDCGQ.be',
+      # 'GVH5182'         : 'blerry_driver_GVH5182.be',
+      # 'GVH5183'         : 'blerry_driver_GVH5183.be',
+      # 'GVH5184'         : 'blerry_driver_GVH5184.be',
+      # 'ATCmi'           : 'blerry_driver_ATCmi.be',
+      # 'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
+      # 'WoContact'       : 'blerry_driver_WoContact.be',
+      # 'WoPresence'      : 'blerry_driver_WoPresence.be',
     }
     var fn = model_drivers[self.config['model']]    
     load(fn)
