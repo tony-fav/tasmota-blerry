@@ -7,8 +7,21 @@
 #######################################################################
 
 # TODO
-#   Add 'precision' support
 #   Add keep alive publications
+#   Port V1 Drivers to V2
+      # 'GVH5075'   : 'blerry_model_GVH5075.be',
+      # 'GVH5072'   : 'blerry_model_GVH5075.be',
+      # 'GVH5101'   : 'blerry_model_GVH5075.be',
+      # 'GVH5102'   : 'blerry_model_GVH5075.be',
+      # 'GVH5182'   : 'blerry_model_GVH5182.be',
+      # 'GVH5183'   : 'blerry_model_GVH5183.be',
+      # 'GVH5184'   : 'blerry_model_GVH5184.be',
+      # 'ATCmi'     : 'blerry_model_ATCmi.be',
+      # 'IBSTH1'    : 'blerry_model_IBSTH2.be',
+      # 'IBSTH2'    : 'blerry_model_IBSTH2.be',
+      # 'WoSensorTH': 'blerry_model_WoSensorTH.be',
+      # 'WoContact' : 'blerry_model_WoContact.be',
+      # 'WoPresence': 'blerry_model_WoPresence.be',
 
 #######################################################################
 # Module Imports
@@ -346,6 +359,13 @@ class Blerry_Device
       end
 
       # precision
+      if self.config.contains('precision')       # if precision is defined in the config
+        for k:self.config['precision'].keys()    # loop over sensors being rounded
+          if msg.contains(k)                     # if we have that sensor value to round
+            msg[k] = blerry_helpers.round(msg[k], self.config['precision'][k])
+          end
+        end
+      end
 
       tasmota.publish(self.topic, json.dump(msg), self.config['sensor_retain'])
       if self.config['publish_attributes']
@@ -533,6 +553,7 @@ class Blerry
       'precision': 
       {
         'Temperature': 2,
+        'DewPoint': 2,
         'Humidity': 1,
         'Battery': 0
       }
