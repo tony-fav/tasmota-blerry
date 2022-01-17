@@ -9,10 +9,6 @@
 # TODO
 #   Add keep alive publications
 #   Port V1 Drivers to V2
-      # 'GVH5075'   : 'blerry_driver_GVH5075.be',
-      # 'GVH5072'   : 'blerry_driver_GVH5075.be',
-      # 'GVH5101'   : 'blerry_driver_GVH5075.be',
-      # 'GVH5102'   : 'blerry_driver_GVH5075.be',
       # 'GVH5182'   : 'blerry_driver_GVH5182.be',
       # 'GVH5183'   : 'blerry_driver_GVH5183.be',
       # 'GVH5184'   : 'blerry_driver_GVH5184.be',
@@ -273,10 +269,10 @@ class Blerry_Device
       'ATC'       : 'blerry_driver_ATCpvvx.be',
       'pvvx'      : 'blerry_driver_ATCpvvx.be',
       'GVH5074'   : 'blerry_driver_GVH5074.be',
-      # 'GVH5075'   : 'blerry_driver_GVH5075.be',
-      # 'GVH5072'   : 'blerry_driver_GVH5075.be',
-      # 'GVH5101'   : 'blerry_driver_GVH5075.be',
-      # 'GVH5102'   : 'blerry_driver_GVH5075.be',
+      'GVH5075'   : 'blerry_driver_GVH5075.be',
+      'GVH5072'   : 'blerry_driver_GVH5075.be',
+      'GVH5101'   : 'blerry_driver_GVH5075.be',
+      'GVH5102'   : 'blerry_driver_GVH5075.be',
       # 'GVH5182'   : 'blerry_driver_GVH5182.be',
       # 'GVH5183'   : 'blerry_driver_GVH5183.be',
       # 'GVH5184'   : 'blerry_driver_GVH5184.be',
