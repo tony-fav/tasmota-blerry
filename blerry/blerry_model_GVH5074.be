@@ -40,16 +40,9 @@ def handle_GVH5074(value, trigger, msg)
           end
 
           output_map['Battery'] = adv_data.geti(7, 1)
-          
-          var temp = adv_data.get(3,2)
-          if temp <= 0x7FFF
-            output_map['Temperature'] = temp / 100.0
-          else
-            output_map['Temperature'] = -(0xFFFF - temp) / 100.0
-          end
-
-          var humidity = adv_data.get(5, 2) / 100.0
-          output_map['Humidity'] = humidity
+          # .geti() will take the two's complement when it extracts data
+          output_map['Temperature'] = adv_data.geti(3,2) / 100.0
+          output_map['Humidity'] = adv_data.get(5, 2) / 100.0
 
           output_map['DewPoint'] = round(get_dewpoint(output_map['Temperature'], output_map['Humidity']), this_device['temp_precision'])
           output_map['Temperature'] = round(output_map['Temperature'], this_device['temp_precision'])
