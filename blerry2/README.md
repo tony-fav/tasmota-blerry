@@ -58,6 +58,19 @@ devices:
 
 Again, you would convert this to json and save as `blerry_config.json`
 
+If you would like to use the same configuration across multiple ESP32 devices, you can use the same config file but ignore specific sensors.
+
+```yaml
+devices:
+  A4C138AAAAAA:
+    alias: example_ATCpvvx
+    model: ATCpvvx
+  E33281BBBBBB:
+    alias: another_sensor
+    model: GVH5074
+    ignore: true
+```
+
 Other settings can be added which override the default behavior and configured behavior for each device
 
 ```yaml
