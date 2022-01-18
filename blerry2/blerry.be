@@ -29,6 +29,13 @@ import json
 import path
 import string
 
+if path.exists('blerry_setup.be')
+  path.remove('blerry_setup.be')
+end
+if path.exists('blerry_setup.bec')
+  path.remove('blerry_setup.bec')
+end
+
 #######################################################################
 # Helpers
 #######################################################################

@@ -56,7 +56,7 @@ def blerry_setup()
     print("Created and Enabled Blerry Load Rule in Rule3")
     return true
   end
+  print("Blerry Setup Complete")
+  tasmota.cmd('Restart 1')
 end
 blerry_setup()
-path.remove('blerry_setup.be')
-path.remove('blerry_setup.bec')
