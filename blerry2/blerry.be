@@ -575,6 +575,7 @@ class Blerry
       'via_pubs': false,
       'sensor_retain': false,
       'publish_attributes': false,
+      'ignored': false,
       'precision': 
       {
         'Temperature': 2,
@@ -585,7 +586,7 @@ class Blerry
     }
   end
 
-  # for each device, default then device specific, then override
+  # for each device: default, then device specific, then override, then ignore
   def setup_device_config()
     self.device_config = {}
     for m:self.user_config['devices'].keys()
@@ -601,6 +602,15 @@ class Blerry
           self.device_config[m][k] = self.user_config['override'][k]
         end
       end
+    end
+    var ignored_devices = []
+    for m:self.device_config.keys()
+      if self.device_config[m]['ignored']
+        ignored_devices.push(m)
+      end
+    end
+    for m:ignored_devices
+      self.device_config.remove(m)
     end
   end
 
