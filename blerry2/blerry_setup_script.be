@@ -14,7 +14,5 @@ def start_blerry_setup()
   f.write(s)
   f.close()
   load('blerry_setup.be')
-  blerry_setup()
-  path.remove('blerry_setup.be')
 end
 start_blerry_setup()
