@@ -85,6 +85,34 @@ class blerry_helpers
     end
     return n
   end
+
+  static def cmd_add_device(cmd, idx, payload, payload_json)
+    var f = open("blerry_config.json", "r")
+    var config = json.load(f.read())
+    f.close()
+    var new_dev = json.load(payload)
+    for m:new_dev.keys()
+      config['devices'][m] = new_dev[m]
+    end
+    f = open("blerry_config.json", "w")
+    f.write(json.dump(config))
+    f.close()
+    tasmota.resp_cmnd_done()
+  end
+
+  static def cmd_clear_config(cmd, idx, payload, payload_json)
+    var f = open("blerry_config.json", "w")
+    f.write(json.dump({'devices':{}}))
+    f.close()
+    tasmota.resp_cmnd_done()
+  end
+
+  static def cmd_get_config(cmd, idx, payload, payload_json)
+    var f = open("blerry_config.json", "r")
+    var config = json.load(f.read())
+    f.close()
+    tasmota.resp_cmnd_str(json.dump(config))
+  end
 end
 
 #######################################################################
@@ -718,4 +746,7 @@ end
 blerry = Blerry()
 blerry_driver = Blerry_Driver(blerry)
 tasmota.add_driver(blerry_driver)
+tasmota.add_cmd("BlerryAddDevice", blerry_helpers.cmd_add_device)
+tasmota.add_cmd("BlerryClearConfig", blerry_helpers.cmd_clear_config)
+tasmota.add_cmd("BlerryGetConfig", blerry_helpers.cmd_get_config)
 blerry.load_success()
