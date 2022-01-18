@@ -140,6 +140,31 @@ class blerry_helpers
     f.close()
     tasmota.resp_cmnd_done()
   end
+
+  static def download_file(file_name, url)
+    var cl = webclient()
+    cl.begin(url)
+    var r = cl.GET()
+    if r != 200
+      print('error')
+    end
+    var s = cl.get_string()
+    cl.close()
+    var f = open(file_name, 'w')
+    f.write(s)
+    f.close()
+  end
+
+  static def download_driver(driver_fname)
+    var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev-blerry2/blerry2/' + driver_fname
+    blerry_helpers.download_file(driver_fname, url)
+  end
+
+  static def ensure_driver_exists(driver_fname)
+    if !path.exists(driver_fname)
+      blerry_helpers.download_driver(driver_fname)
+    end
+  end
 end
 
 #######################################################################
@@ -356,6 +381,7 @@ class Blerry_Device
     var fn = model_drivers[self.config['model']]    
     blerry_handle = def () print('BLY: Driver did not load properly') end
     blerry_active = false
+    blerry_helpers.ensure_driver_exists(fn)
     load(fn)
     self.handle = blerry_handle
     self.active = blerry_active
