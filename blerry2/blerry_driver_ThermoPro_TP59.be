@@ -3,7 +3,7 @@ def blerry_handle(device, advert)
   if size(elements)
     var data = elements[0].data
     var t = data.geti(1,2)/10.0
-    var h = data.get(3,2)/10.0
+    var h = data[3]
     var dewp = blerry_helpers.get_dewpoint(t, h)
     device.add_sensor('Temperature', t,  'temperature', '°C')
     device.add_sensor('Humidity', h, 'humidity', '%')
