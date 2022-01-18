@@ -147,22 +147,30 @@ class blerry_helpers
     var r = cl.GET()
     if r != 200
       print('error')
+      return false
     end
     var s = cl.get_string()
     cl.close()
     var f = open(file_name, 'w')
     f.write(s)
     f.close()
+    return true
   end
 
   static def download_driver(driver_fname)
     var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev-blerry2/blerry2/' + driver_fname
-    blerry_helpers.download_file(driver_fname, url)
+    return blerry_helpers.download_file(driver_fname, url)
   end
 
   static def ensure_driver_exists(driver_fname)
     if !path.exists(driver_fname)
-      blerry_helpers.download_driver(driver_fname)
+      if blerry_helpers.download_driver(driver_fname)
+        print('downloaded driver successfully', driver_fname)
+        return true
+      else
+        print('could not download driver automatically', driver_fname)
+        return false
+      end
     end
   end
 end
