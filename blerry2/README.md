@@ -10,7 +10,7 @@ First, you must flash your ESP32 (or ESP32-C3 or ESP32-Solo1) with a Tasmota bui
 
 Next, to use: 
 - Upload `blerry.be` and each `blerry_driver_xxxx.be` driver file you may need to the file system of the ESP32. (`http://your.tas.device.ip/ufsd?`)
-- Edit `blerry_config.json` as needed for your device configuration, HA discovery choices, etc... (make sure you delete the example configurations for devices you are not using).
+- Edit `blerry_config.json` as needed for your device configuration, HA discovery choices, etc... (make sure you delete the example configurations for devices you are not using) and upload to the file system of the ESP32.
 - Create and enable (`Rule1 1`) the following Tasmota Rule and Restart Tasmota.
 ```
 Rule1 ON System#Boot DO br load('blerry.be') ENDON
@@ -129,7 +129,7 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 | `"GVH5075"`         | `"A4C138XXXXXX"`   | Govee H5072, H5075, H5101, and H5102. |
 | `"IBSTH2"`          | `"494208XXXXXX"`   | Inkbird IBSTH1 & IBSTH2 with and without humidity. |
 | `"ThermoPro_TP59"`  | `"487E48XXXXXX"`   | ThermoPro TP59. |
-| `"Xiaomi_LYWSDCGQ"` | `"582D34XXXXXX"`   | Xiaomi LYWSDCGQ. *Could evolve to general Xiaomi driver.* |
+| `"Xiaomi"` | `"AABBCCDDEEFF"`   | Supports: ATC/PVVX sensor on Mi-Like Advertising and Xiaomi LYWSDCGQ. *Can be expanded to more sensors* |
 | `"dev"`             | `"AABBCCDDEEFF"`   | A driver for easy development that prints out received raw data. |
 
 
@@ -137,7 +137,6 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 
 | Driver Name    | Mac Example        | Description |
 | -------------- | ------------------ | ----------- |
-| `"ATCmi"`      | `"A4C138XXXXXX"`   | Xiaomi sensors on ATC or pvvx firmware with "Mi" advertisement. |
 | `"GVH5182"`    | `"C33130XXXXXX/1"` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
 | `"GVH5183"`    | `"A4C138XXXXXX"`   | Govee H5183 single probe meat thermometer. |
 | `"GVH5184"`    | `"D03232XXXXXX/1"` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |

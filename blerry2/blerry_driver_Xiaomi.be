@@ -7,10 +7,15 @@ def blerry_handle(device, advert)
       return false
     end
     if blerry_helpers.bitval(data[0], 3) == 1 # encrypted
+      print('BLY: Xiaomi: Cannot support encrypted data.')
       return false
     end
-    if data[2..3] != bytes('AA01') # LYWSDCGQ
-      return false
+    if data[2..3] == bytes('AA01')
+      device.add_attribute('DevID', 'LYWSDCGQ')
+    elif data[2..3] == bytes('5B05')
+      device.add_attribute('DevID', 'ATC_on_MI')
+    else
+      device.add_attribute('DevID', 'Unknown')
     end
     var offset = 11 + blerry_helpers.bitval(data[0], 5) # offset to data point
     if data[offset+1] != 0x10 # no magic byte in data point
@@ -25,7 +30,7 @@ def blerry_handle(device, advert)
       device.add_sensor('Humidity', dp_data.geti(0,2)/10.0,  'humidity', '%')
     elif (dp_type == 0x0A) && (dp_len == 1)
       device.add_sensor('Battery', dp_data[0],  'battery', '%')
-    elif (dp_type == 0x0d) && (dp_len == 4)
+    elif (dp_type == 0x0D) && (dp_len == 4)
       var t = dp_data.geti(0,2)/10.0
       var h = dp_data.geti(2,2)/10.0
       var dewp = blerry_helpers.get_dewpoint(t, h)
