@@ -86,7 +86,7 @@ class blerry_helpers
     return n
   end
 
-  static def cmd_add_device(cmd, idx, payload, payload_json)
+  static def cmd_set_device(cmd, idx, payload, payload_json)
     var f = open("blerry_config.json", "r")
     var config = json.load(f.read())
     f.close()
@@ -100,9 +100,29 @@ class blerry_helpers
     tasmota.resp_cmnd_done()
   end
 
-  static def cmd_clear_config(cmd, idx, payload, payload_json)
+  static def cmd_get_device(cmd, idx, payload, payload_json)
+    var f = open("blerry_config.json", "r")
+    var config = json.load(f.read())
+    f.close()
+    tasmota.resp_cmnd_str(json.dump({payload: config['devices'][payload]}))
+  end
+  
+  static def cmd_del_device(cmd, idx, payload, payload_json)
+    var f = open("blerry_config.json", "r")
+    var config = json.load(f.read())
+    f.close()
+    var new_dev = json.load(payload)
+    config['devices'].remove(payload)
+    f = open("blerry_config.json", "w")
+    f.write(json.dump(config))
+    f.close()
+    tasmota.resp_cmnd_done()
+  end
+
+  static def cmd_set_config(cmd, idx, payload, payload_json)
+    var config = json.load(payload)
     var f = open("blerry_config.json", "w")
-    f.write(json.dump({'devices':{}}))
+    f.write(json.dump(config))
     f.close()
     tasmota.resp_cmnd_done()
   end
@@ -112,6 +132,13 @@ class blerry_helpers
     var config = json.load(f.read())
     f.close()
     tasmota.resp_cmnd_str(json.dump(config))
+  end
+
+  static def cmd_del_config(cmd, idx, payload, payload_json)
+    var f = open("blerry_config.json", "w")
+    f.write(json.dump({'devices':{}}))
+    f.close()
+    tasmota.resp_cmnd_done()
   end
 end
 
@@ -746,7 +773,10 @@ end
 blerry = Blerry()
 blerry_driver = Blerry_Driver(blerry)
 tasmota.add_driver(blerry_driver)
-tasmota.add_cmd("BlerryAddDevice", blerry_helpers.cmd_add_device)
-tasmota.add_cmd("BlerryClearConfig", blerry_helpers.cmd_clear_config)
+tasmota.add_cmd("BlerrySetDevice", blerry_helpers.cmd_set_device)
+tasmota.add_cmd("BlerryGetDevice", blerry_helpers.cmd_get_device)
+tasmota.add_cmd("BlerryDelDevice", blerry_helpers.cmd_del_device)
 tasmota.add_cmd("BlerryGetConfig", blerry_helpers.cmd_get_config)
+tasmota.add_cmd("BlerrySetConfig", blerry_helpers.cmd_set_config)
+tasmota.add_cmd("BlerryDelConfig", blerry_helpers.cmd_del_config)
 blerry.load_success()
