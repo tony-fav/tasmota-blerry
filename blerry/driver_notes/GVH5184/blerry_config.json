@@ -1,0 +1,8 @@
+{
+   "devices":{
+      "D03232363E5E/1":{
+         "alias":"dev-Govee4Probe",
+         "model":"GVH5184",
+       },
+   }
+}
