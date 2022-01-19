@@ -15,9 +15,14 @@ def blerry_pull_file(file_name, url)
   f.close()
 end
 def blerry_make_blank_config()
-  var f = open('blerry_config.json', 'w')
-  f.write(json.dump({'devices':{}}))
-  f.close()
+  if path.exists('blerry_config.json')
+    print('Found an existing blerry_config.json')
+  else
+    var f = open('blerry_config.json', 'w')
+    f.write(json.dump({'devices':{}}))
+    f.close()
+    print('Created a blank blerry_config.json')
+  end
 end
 def blerry_setup()
   blerry_pull_file('blerry.be', 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry.be')
