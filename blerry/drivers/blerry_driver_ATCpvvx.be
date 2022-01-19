@@ -38,4 +38,4 @@ def blerry_handle(device, advert)
   end
 end
 blerry_active = false
-print('BLR: Driver: ATCpvvx Loaded')
+print('BLY: Driver: ATCpvvx Loaded')

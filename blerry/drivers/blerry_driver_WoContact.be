@@ -33,4 +33,4 @@ def blerry_handle(device, advert)
   end
 end
 blerry_active = true
-print('BLR: Driver: WoContact Loaded')
+print('BLY: Driver: WoContact Loaded')

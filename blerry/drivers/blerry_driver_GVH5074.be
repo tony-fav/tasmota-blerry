@@ -17,4 +17,4 @@ def blerry_handle(device, advert)
   end
 end
 blerry_active = true
-print('BLR: Driver: GVH5074 Loaded')
+print('BLY: Driver: GVH5074 Loaded')

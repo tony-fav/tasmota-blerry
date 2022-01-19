@@ -20,4 +20,4 @@ def blerry_handle(device, advert)
   end
 end
 blerry_active = true
-print('BLR: Driver: WoSensorTH Loaded')
+print('BLY: Driver: WoSensorTH Loaded')
