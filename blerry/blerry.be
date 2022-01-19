@@ -16,7 +16,6 @@ var blerry_version = 'v0.2.0-dev'
       # 'GVH5183'   : 'blerry_driver_GVH5183.be',
       # 'GVH5184'   : 'blerry_driver_GVH5184.be',
       # 'WoContact' : 'blerry_driver_WoContact.be',
-      # 'WoPresence': 'blerry_driver_WoPresence.be',
 
 #######################################################################
 # Module Imports
@@ -388,12 +387,12 @@ class Blerry_Device
       'ATCmi'           : 'blerry_driver_Xiaomi.be',
       'Xiaomi_LYWSDCGQ' : 'blerry_driver_Xiaomi.be',
       'ThermoPro_TP59'  : 'blerry_driver_ThermoPro_TP59.be',
+      'WoPresence'      : 'blerry_driver_WoPresence.be',
       'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
       # 'GVH5182'         : 'blerry_driver_GVH5182.be',
       # 'GVH5183'         : 'blerry_driver_GVH5183.be',
       # 'GVH5184'         : 'blerry_driver_GVH5184.be',
       # 'WoContact'       : 'blerry_driver_WoContact.be',
-      # 'WoPresence'      : 'blerry_driver_WoPresence.be',
     }
     var fn = model_drivers[self.config['model']]    
     blerry_handle = def () print('BLY: Driver did not load properly:', self.config['model']) end
