@@ -408,7 +408,7 @@ class Blerry_Device
       'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
       # 'GVH5182'         : 'blerry_driver_GVH5182.be',
       # 'GVH5183'         : 'blerry_driver_GVH5183.be',
-      # 'GVH5184'         : 'blerry_driver_GVH5184.be',
+      'GVH5184'         : 'blerry_driver_GVH5184.be',
     }
     var fn = model_drivers[self.config['model']]    
     blerry_handle = def () print('BLY: Driver did not load properly:', self.config['model']) end
