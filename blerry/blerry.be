@@ -93,58 +93,61 @@ class blerry_helpers
     return n
   end
 
-  static def cmd_set_device(cmd, idx, payload, payload_json)
-    var f = open("blerry_config.json", "r")
-    var config = json.load(f.read())
+  static def read_config()
+    var config
+    if path.exists("blerry_config.json")
+      var f = open("blerry_config.json", "r")
+      config = json.load(f.read())
+      f.close()
+    else
+      config = {'devices':{}}
+      blerry_helpers.write_config(config)
+    end
+    return config
+  end
+
+  static def write_config(config)
+    var f = open("blerry_config.json", "w")
+    f.write(json.dump(config))
     f.close()
+  end
+
+  static def cmd_set_device(cmd, idx, payload, payload_json)
+    var config = blerry_helpers.read_config()
     var new_dev = json.load(payload)
     for m:new_dev.keys()
       config['devices'][m] = new_dev[m]
     end
-    f = open("blerry_config.json", "w")
-    f.write(json.dump(config))
-    f.close()
+    blerry_helpers.write_config(config)
     tasmota.resp_cmnd_done()
   end
 
   static def cmd_get_device(cmd, idx, payload, payload_json)
-    var f = open("blerry_config.json", "r")
-    var config = json.load(f.read())
-    f.close()
-    tasmota.resp_cmnd_str(json.dump({payload: config['devices'][payload]}))
+    var config = blerry_helpers.read_config()
+    tasmota.resp_cmnd(json.dump({payload: config['devices'][blerry_helpers.string_upper(payload)]}))
   end
   
   static def cmd_del_device(cmd, idx, payload, payload_json)
-    var f = open("blerry_config.json", "r")
-    var config = json.load(f.read())
-    f.close()
+    var config = blerry_helpers.read_config()
     var new_dev = json.load(payload)
     config['devices'].remove(payload)
-    f = open("blerry_config.json", "w")
-    f.write(json.dump(config))
-    f.close()
+    blerry_helpers.write_config(config)
     tasmota.resp_cmnd_done()
   end
 
   static def cmd_set_config(cmd, idx, payload, payload_json)
     var config = json.load(payload)
-    var f = open("blerry_config.json", "w")
-    f.write(json.dump(config))
-    f.close()
+    blerry_helpers.write_config(config)
     tasmota.resp_cmnd_done()
   end
 
   static def cmd_get_config(cmd, idx, payload, payload_json)
-    var f = open("blerry_config.json", "r")
-    var config = json.load(f.read())
-    f.close()
-    tasmota.resp_cmnd_str(json.dump(config))
+    var config = blerry_helpers.read_config()
+    tasmota.resp_cmnd(json.dump(config))
   end
 
   static def cmd_del_config(cmd, idx, payload, payload_json)
-    var f = open("blerry_config.json", "w")
-    f.write(json.dump({'devices':{}}))
-    f.close()
+    blerry_helpers.write_config({'devices':{}})
     tasmota.resp_cmnd_done()
   end
 
@@ -153,7 +156,7 @@ class blerry_helpers
     cl.begin(url)
     var r = cl.GET()
     if r != 200
-      print('error')
+      print('BLY: Could not download file:', file_name, 'from:', url)
       return false
     end
     var s = cl.get_string()
@@ -172,10 +175,10 @@ class blerry_helpers
   static def ensure_driver_exists(driver_fname)
     if !path.exists(driver_fname)
       if blerry_helpers.download_driver(driver_fname)
-        print('downloaded driver successfully', driver_fname)
+        print('BLY: Downloaded driver successfully:', driver_fname)
         return true
       else
-        print('could not download driver automatically', driver_fname)
+        print('BLY: Could not download driver:', driver_fname)
         return false
       end
     end
@@ -394,7 +397,7 @@ class Blerry_Device
       # 'WoPresence'      : 'blerry_driver_WoPresence.be',
     }
     var fn = model_drivers[self.config['model']]    
-    blerry_handle = def () print('BLY: Driver did not load properly') end
+    blerry_handle = def () print('BLY: Driver did not load properly:', self.config['model']) end
     blerry_active = false
     blerry_helpers.ensure_driver_exists(fn)
     load(fn)
