@@ -343,6 +343,7 @@ class Blerry_Device
   var binary_sensors_to_discover
   var topic
   var publish_available
+  var next_forced_publish
 
   def init(mac, config, blerry_inst)
     self.mac = mac
@@ -362,6 +363,7 @@ class Blerry_Device
     self.add_attribute('Model', self.config['model'])
 
     # publication related
+    self.next_forced_publish = tasmota.millis(300000)
     self.publish_available = false
     self.topic = self.config['base_topic']
     if self.topic[-1] != '/'
@@ -447,6 +449,7 @@ class Blerry_Device
 
   def publish()
     if self.publish_available
+      self.next_forced_publish = tasmota.millis(300000)
       var msg = {}
       for a:self.attributes
         msg[a.name] = a.value
@@ -739,6 +742,9 @@ class Blerry
       handle_f(device, advert)
       device.add_attribute('Time', tasmota.time_str(tasmota.rtc()['local']))
       device.add_sensor_no_pub('RSSI', value['RSSI'], 'signal_strength', 'dB')
+      if tasmota.millis() > device.next_forced_publish
+        device.publish_available = true
+      end
     except .. as e, m
       print('BLY: tried to handle mac =', value['mac'], 'with alias =', value['a'])
       raise e, m
