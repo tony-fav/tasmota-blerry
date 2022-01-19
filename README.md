@@ -9,6 +9,7 @@ Here's an intro video by @digiblur to get an idea of the how and why! HOWEVER, s
 ### Compatible ESP32
 
 First, you must flash your ESP32 (or ESP32-C3 or ESP32-Solo1) with a Tasmota build with BLE and Berry. These are available from the [Tasmota Web Installer](https://tasmota.github.io/install/). The binaries are available here: [ESP32 Release](https://github.com/tasmota/install/blob/main/firmware/release/tasmota32-bluetooth.bin), [ESP32 Dev](https://github.com/tasmota/install/blob/main/firmware/development/tasmota32-bluetooth.bin), [ESP32-C3 Dev Only](https://github.com/tasmota/install/blob/main/firmware/unofficial/tasmota32c3-bluetooth.bin), and [ESP32-Solo1 Dev Only](https://github.com/tasmota/install/blob/main/firmware/unofficial/tasmota32solo1-bluetooth.bin). Additionally, this repo may from time to time host compiled Tasmota binaries that are confirmed to be stable for this project, provided there is any instability in the dev releases.
+
 ### Automated Setup
 
 Provided your Tasmota32 device has internet access, BLErry can be installed automatically by running the following (`blerry_setup_script.be`) in the Berry Scripting Console (`http://your.tas.device.ip/bc?`)
@@ -33,7 +34,40 @@ def start_blerry_setup()
 end
 start_blerry_setup()
 ```
-This script will download a larger setup script and run it which downloads `blerry.be`, sets up a blank `blerry_config.json` if one does not already exist, sets up a Rule to launch BLErry on tasmota start if one does not already exist, and restarts the ESP. 
+This script will download a larger setup script and run it which downloads `blerry.be`, sets up a blank `blerry_config.json` if one does not already exist, sets up and enables a Rule to launch BLErry on Tasmota boot if one does not already exist, and restarts the ESP. 
+
+### Tasmota Commands
+
+There are several available Tasmota commands which can be used to setup devices or get information about the current setup.
+
+The list of commands is below
+
+```
+BlerrySetDevice <JSON of a single device> 
+BlerryGetDevice 
+BlerryDelDevice <mac of a single device>
+BlerrySetConfig <Complete JSON>
+BlerryGetConfig 
+BlerryDelConfig
+```
+
+For example,
+
+`BlerrySetDevice {"E33281034C99":{"alias":"dev_GVH5074","model":"GVH5074"}}`
+
+would add this device (if it did not exist) to the configuration or edit the device to have this configuration if it did not previously. The rest of the configuration would remain intact. After this command, for changes to take effect, the Tasmota device should be restarted.
+
+`BlerryDelDevice E33281034C99`
+
+would delete the device configuration with mac address `E33281034C99` leaving the remaining configuration intact.
+
+`BlerrySetConfig {"devices":{"E33281034C99":{"alias":"dev_GVH5074","model":"GVH5074"}}}`
+
+would rewrite the entire configuration file to be the provided JSON.
+
+These commands work like regular Tasmota commands, available through the console, serial, MQTT, HTTP request, etc.
+
+
 
 ### Manual Setup
 
