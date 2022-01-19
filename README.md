@@ -4,9 +4,38 @@ Here's an intro video by @digiblur to get an idea of the how and why! HOWEVER, s
 
 [![video thumbnail](http://img.youtube.com/vi/oJmDRkKnzFc/0.jpg)](http://www.youtube.com/watch?v=oJmDRkKnzFc "Tasmota ESP32 Bluetooth Blerry How To - Temperatures into Home Assistant")
 
-## Basic Setup
+## Setup
+
+### Compatible ESP32
 
 First, you must flash your ESP32 (or ESP32-C3 or ESP32-Solo1) with a Tasmota build with BLE and Berry. These are available from the [Tasmota Web Installer](https://tasmota.github.io/install/). The binaries are available here: [ESP32 Release](https://github.com/tasmota/install/blob/main/firmware/release/tasmota32-bluetooth.bin), [ESP32 Dev](https://github.com/tasmota/install/blob/main/firmware/development/tasmota32-bluetooth.bin), [ESP32-C3 Dev Only](https://github.com/tasmota/install/blob/main/firmware/unofficial/tasmota32c3-bluetooth.bin), and [ESP32-Solo1 Dev Only](https://github.com/tasmota/install/blob/main/firmware/unofficial/tasmota32solo1-bluetooth.bin). Additionally, this repo may from time to time host compiled Tasmota binaries that are confirmed to be stable for this project, provided there is any instability in the dev releases.
+### Automated Setup
+
+Provided your Tasmota32 device has internet access, BLErry can be installed automatically by running the following (`blerry_setup_script.be`) in the Berry Scripting Console (`http://your.tas.device.ip/bc?`)
+
+```python
+import path
+def start_blerry_setup()
+  var cl = webclient()
+  var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry_setup.be'
+  cl.begin(url)
+  var r = cl.GET()
+  if r != 200
+    print('error getting blerry_setup.be')
+    return false
+  end
+  var s = cl.get_string()
+  cl.close()
+  var f = open('blerry_setup.be', 'w')
+  f.write(s)
+  f.close()
+  load('blerry_setup.be')
+end
+start_blerry_setup()
+```
+This script will download a larger setup script and run it which downloads `blerry.be`, sets up a blank `blerry_config.json` if one does not already exist, sets up a Rule to launch BLErry on tasmota start if one does not already exist, and restarts the ESP. 
+
+### Manual Setup
 
 Next, to use: 
 - Upload `blerry.be` and each `blerry_driver_xxxx.be` driver file you may need to the file system of the ESP32. (`http://your.tas.device.ip/ufsd?`)
@@ -18,7 +47,7 @@ Rule1 ON System#Boot DO br load('blerry.be') ENDON
 
 If you use HA discovery, devices should appear under MQTT Devices NOT the Tasmota integration.
 
-## Configuration JSON
+### Configuration JSON
 
 As most folks in the home automation world are incredibly familiar with yaml, I suggest writing your configuration in yaml then converting it to JSON with https://www.json2yaml.com/
 
@@ -140,6 +169,7 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 | `"ATCpvvx"`         | `"A4C138XXXXXX"`   | Xiaomi sensors on ATC or pvvx firmware with "ATC1441" or "Custom" advertisement. |
 | `"GVH5074"`         | `"E33281XXXXXX"`   | Govee H5074. *Need H5051 packets to add support to this driver.* |
 | `"GVH5075"`         | `"A4C138XXXXXX"`   | Govee H5072, H5075, H5101, and H5102. |
+| `"GVH5184"`         | `"D03232XXXXXX/1"` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |
 | `"IBSTH2"`          | `"494208XXXXXX"`   | Inkbird IBSTH1 & IBSTH2 with and without humidity. |
 | `"ThermoPro_TP59"`  | `"487E48XXXXXX"`   | ThermoPro TP59. |
 | `"WoContact"`       | `"D4BD28XXXXXX/1"` | Switchbot contact sensor (also has motion, binary lux, and a button). |
@@ -155,7 +185,6 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 | -------------- | ------------------ | ----------- |
 | `"GVH5182"`    | `"C33130XXXXXX/1"` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
 | `"GVH5183"`    | `"A4C138XXXXXX"`   | Govee H5183 single probe meat thermometer. |
-| `"GVH5184"`    | `"D03232XXXXXX/1"` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |
 
 ## Development Status
 
@@ -170,7 +199,13 @@ I *have* the following devices that I am seeking to support which all require so
 
 Feel free to fork and PR any new drivers, better code, etc.!
 
-I have added a document with some of the process for supporting the Govee H5183.
+I have added a document with some of the process for supporting the Govee H5183 in v0.1.x. The implementation has changed drastically (to be easier) in v0.2.x.
+## Drivers to Reference
+
+- `ATCpvvx` driver shows how different BLE Advertisement Elements can be processed in the same driver file.
+- `Xiaomi` shows how different information can be handled based on differing flags in a BLE Advertisement Element.
+- `WoContact` has a button which shows how to immediately force MQTT publications to say 'ON' then right away 'OFF'.
+- `WoContact` shows how to recall information from a device attribute if needed for later processing (button is a press counter).
 
 # If you like my project
 
