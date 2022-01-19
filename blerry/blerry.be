@@ -321,6 +321,22 @@ class Blerry_Binary_Sensor
     end
     self.dev_cla = dev_cla
   end
+
+  def compare(in_value) # todo: improve
+    if in_value
+      if self.value == 'ON'
+        return true
+      else
+        return false
+      end
+    else
+      if self.value == 'OFF'
+        return true
+      else
+        return false
+      end
+    end
+  end
 end
 
 #######################################################################
@@ -387,12 +403,12 @@ class Blerry_Device
       'ATCmi'           : 'blerry_driver_Xiaomi.be',
       'Xiaomi_LYWSDCGQ' : 'blerry_driver_Xiaomi.be',
       'ThermoPro_TP59'  : 'blerry_driver_ThermoPro_TP59.be',
+      'WoContact'       : 'blerry_driver_WoContact.be',
       'WoPresence'      : 'blerry_driver_WoPresence.be',
       'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
       # 'GVH5182'         : 'blerry_driver_GVH5182.be',
       # 'GVH5183'         : 'blerry_driver_GVH5183.be',
       # 'GVH5184'         : 'blerry_driver_GVH5184.be',
-      # 'WoContact'       : 'blerry_driver_WoContact.be',
     }
     var fn = model_drivers[self.config['model']]    
     blerry_handle = def () print('BLY: Driver did not load properly:', self.config['model']) end
@@ -405,6 +421,14 @@ class Blerry_Device
 
   def add_attribute(name, value)
     self.attributes[name] = Blerry_Attribute(name, value)
+  end
+
+  def get_attribute(name)
+    if self.attributes.contains(name)
+      return self.attributes[name]
+    else
+      return nil
+    end
   end
 
   def add_sensor_no_pub(name, value, dev_cla, unit_of_meas)
@@ -437,7 +461,7 @@ class Blerry_Device
       self.binary_sensors[name] = Blerry_Binary_Sensor(name, value, dev_cla)
       self.binary_sensors_to_discover.push(name)
       self.publish_available = true
-    elif self.binary_sensors[name].value != value
+    elif !self.binary_sensors[name].compare(value)
       self.binary_sensors[name] = Blerry_Binary_Sensor(name, value, dev_cla)
       self.publish_available = true
     end

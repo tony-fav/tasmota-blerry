@@ -142,6 +142,7 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 | `"GVH5075"`         | `"A4C138XXXXXX"`   | Govee H5072, H5075, H5101, and H5102. |
 | `"IBSTH2"`          | `"494208XXXXXX"`   | Inkbird IBSTH1 & IBSTH2 with and without humidity. |
 | `"ThermoPro_TP59"`  | `"487E48XXXXXX"`   | ThermoPro TP59. |
+| `"WoContact"`       | `"D4BD28XXXXXX/1"` | Switchbot contact sensor (also has motion, binary lux, and a button). |
 | `"WoPresence"`      | `"FC7CADXXXXXX/1"` | Switchbot motion sensor (also has binary lux). |
 | `"WoSensorTH"`      | `"D4E4A3XXXXXX/1"` | Switchbot temperature and humidity sensor. |
 | `"Xiaomi"`          | `"AABBCCDDEEFF"`   | ATC/PVVX sensor on Mi-Like Advertising and Xiaomi LYWSDCGQ. *Can be expanded to more sensors* |
@@ -155,7 +156,6 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 | `"GVH5182"`    | `"C33130XXXXXX/1"` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
 | `"GVH5183"`    | `"A4C138XXXXXX"`   | Govee H5183 single probe meat thermometer. |
 | `"GVH5184"`    | `"D03232XXXXXX/1"` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |
-| `"WoContact"`  | `"D4BD28XXXXXX/1"` | Switchbot contact sensor (also has motion, binary lux, and a button). |
 
 ## Development Status
 
