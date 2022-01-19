@@ -36,6 +36,12 @@ start_blerry_setup()
 ```
 This script will download a larger setup script and run it which downloads `blerry.be`, sets up a blank `blerry_config.json` if one does not already exist, sets up and enables a Rule to launch BLErry on Tasmota boot if one does not already exist, and restarts the ESP. 
 
+Alternately, this setup script can be executed as a Tasmota command:
+
+```
+br import path; def start_blerry_setup(); var cl = webclient(); var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry_setup.be'; cl.begin(url); var r = cl.GET(); if r != 200; print('error getting blerry_setup.be'); return false; end; var s = cl.get_string(); cl.close(); var f = open('blerry_setup.be', 'w'); f.write(s); f.close(); load('blerry_setup.be'); end; start_blerry_setup()
+```
+
 ### Tasmota Commands
 
 There are several available Tasmota commands which can be used to setup devices or get information about the current setup.
