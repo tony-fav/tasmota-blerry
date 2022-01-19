@@ -20,7 +20,7 @@ def blerry_make_blank_config()
   f.close()
 end
 def blerry_setup()
-  blerry_pull_file('blerry.be', 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev-blerry2/blerry2/blerry.be')
+  blerry_pull_file('blerry.be', 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry.be')
   blerry_make_blank_config()
   var r1 = tasmota.cmd('Rule1')['Rule1']
   var r2 = tasmota.cmd('Rule2')['Rule2']
