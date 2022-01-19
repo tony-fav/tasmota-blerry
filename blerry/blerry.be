@@ -15,8 +15,6 @@ var blerry_version = 'v0.2.0-dev'
       # 'GVH5182'   : 'blerry_driver_GVH5182.be',
       # 'GVH5183'   : 'blerry_driver_GVH5183.be',
       # 'GVH5184'   : 'blerry_driver_GVH5184.be',
-      # 'ATCmi'     : 'blerry_driver_ATCmi.be',
-      # 'WoSensorTH': 'blerry_driver_WoSensorTH.be',
       # 'WoContact' : 'blerry_driver_WoContact.be',
       # 'WoPresence': 'blerry_driver_WoPresence.be',
 
@@ -390,11 +388,10 @@ class Blerry_Device
       'ATCmi'           : 'blerry_driver_Xiaomi.be',
       'Xiaomi_LYWSDCGQ' : 'blerry_driver_Xiaomi.be',
       'ThermoPro_TP59'  : 'blerry_driver_ThermoPro_TP59.be',
+      'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
       # 'GVH5182'         : 'blerry_driver_GVH5182.be',
       # 'GVH5183'         : 'blerry_driver_GVH5183.be',
       # 'GVH5184'         : 'blerry_driver_GVH5184.be',
-      # 'ATCmi'           : 'blerry_driver_ATCmi.be',
-      # 'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
       # 'WoContact'       : 'blerry_driver_WoContact.be',
       # 'WoPresence'      : 'blerry_driver_WoPresence.be',
     }
