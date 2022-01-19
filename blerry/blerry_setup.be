@@ -14,7 +14,7 @@ def blerry_pull_file(file_name, url)
   f.write(s)
   f.close()
 end
-def blerry_make_blank_config()
+def blerry_setup_config()
   if path.exists('blerry_config.json')
     print('Found an existing blerry_config.json')
   else
@@ -24,9 +24,7 @@ def blerry_make_blank_config()
     print('Created a blank blerry_config.json')
   end
 end
-def blerry_setup()
-  blerry_pull_file('blerry.be', 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry.be')
-  blerry_make_blank_config()
+def blerry_setup_process_rules()
   var r1 = tasmota.cmd('Rule1')['Rule1']
   var r2 = tasmota.cmd('Rule2')['Rule2']
   var r3 = tasmota.cmd('Rule3')['Rule3']
@@ -62,6 +60,18 @@ def blerry_setup()
     return true
   end
 end
+def blerry_setup_check_BLE_on()
+  if tasmota.cmd('SetOption115')['SetOption115'] != 'ON'
+    print('BLY: BLE is not enabled, enabling now.')
+    tasmota.cmd('SetOption115 ON')
+  end
+end
+def blerry_setup()
+  blerry_pull_file('blerry.be', 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry.be')
+  blerry_setup_config()
+  blerry_setup_process_rules()
+  blerry_setup_check_BLE_on()
+  print("Blerry Setup Complete")
+  tasmota.cmd('Restart 1')
+end
 blerry_setup()
-print("Blerry Setup Complete")
-tasmota.cmd('Restart 1')
