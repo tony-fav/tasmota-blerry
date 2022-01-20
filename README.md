@@ -1,6 +1,12 @@
 # BLErry v0.2.x - A BLE Gateway inside Tasmota32 using Berry
 
-Here's an intro video by @digiblur to get an idea of the how and why! HOWEVER, setup has changed, gotten simpler, since this video, see below. 
+Here's an intro video by @digiblur to get an idea of the how and why! **HOWEVER, setup has changed, gotten simpler, since this video, see below.** Make sure to check out the discussions below.
+
+[Feature Requests](https://github.com/tony-fav/tasmota-blerry/discussions/27)
+
+[Device Suggestions](https://github.com/tony-fav/tasmota-blerry/discussions/22)
+
+[ESP32 Lock-Up/Reboot Issues](https://github.com/tony-fav/tasmota-blerry/discussions/28)
 
 [![video thumbnail](http://img.youtube.com/vi/oJmDRkKnzFc/0.jpg)](http://www.youtube.com/watch?v=oJmDRkKnzFc "Tasmota ESP32 Bluetooth Blerry How To - Temperatures into Home Assistant")
 
@@ -202,7 +208,11 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 - Try loading BLErry just in the console with `br load('blerry.be')` and watch the logs for errors.
 - Hop in the #blerry thread in the #tasmota channel of Digiblur's discord.
 
-## Supported Sensors in BLErry v0.2.x
+## Supported Devices in BLErry v0.2.x
+
+Please discuss any devices you would like supported [here](https://github.com/tony-fav/tasmota-blerry/discussions/22) as well as if you are working on supporting any device!
+
+### Sensors
 
 | Driver Name         | Mac Example        | Description |
 | ------------------- | ------------------ | ----------- |
@@ -219,8 +229,7 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 | `"Xiaomi"`          | `"AABBCCDDEEFF"`   | ATC/PVVX sensor on Mi-Like Advertising and Xiaomi LYWSDCGQ. *Can be expanded to more sensors* |
 | `"dev"`             | `"AABBCCDDEEFF"`   | A driver for easy development that prints out received raw data. |
 
-
-## Sensors Supported in BLErry v0.1.x Remaning to Port
+### Supported in BLErry v0.1.x Remaning to Port
 
 | Driver Name    | Mac Example        | Description |
 | -------------- | ------------------ | ----------- |
