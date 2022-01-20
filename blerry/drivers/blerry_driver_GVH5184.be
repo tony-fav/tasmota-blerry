@@ -1,4 +1,11 @@
 def blerry_handle(device, advert)
+  # # if needed, a way to get UUID which Govee seems to use as product ID
+  # var elements = advert.get_elements_by_type_length(0x03, 0x03)
+  # var device_id = 0
+  # if size(elements)
+  #   device_id = elements[0].data.get(0, -2)
+  #   device.add_attribute('DevID', string.format('H%04X', device_id))
+  # end
   var elements = advert.get_elements_by_type_length(0xFF, 0x14)
   if size(elements)
     var data = elements[0].data

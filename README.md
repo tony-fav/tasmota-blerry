@@ -42,6 +42,8 @@ start_blerry_setup()
 ```
 This script will download a larger setup script and run it which downloads `blerry.be`, sets up a blank `blerry_config.json` if one does not already exist, sets up and enables a Rule to launch BLErry on Tasmota boot if one does not already exist, and restarts the ESP. 
 
+**If the script did not seem to work the first time. Run it again! There is some instability in downloading files to the ESP.**
+
 Alternately, this setup script can be executed as a Tasmota command:
 
 ```
@@ -220,6 +222,7 @@ Please discuss any devices you would like supported [here](https://github.com/to
 | `"GVH5074"`         | `"E33281XXXXXX"`   | Govee H5074. *Need H5051 packets to add support to this driver.* |
 | `"GVH5075"`         | `"A4C138XXXXXX"`   | Govee H5072, H5075, H5101, and H5102. |
 | `"GVH5182"`         | `"C33130XXXXXX/1"` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
+| `"GVH5183"`         | `"A4C138XXXXXX"`   | Govee H5183 single probe meat thermometer. |
 | `"GVH5184"`         | `"D03232XXXXXX/1"` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |
 | `"IBSTH2"`          | `"494208XXXXXX"`   | Inkbird IBSTH1 & IBSTH2 with and without humidity. |
 | `"ThermoPro_TP59"`  | `"487E48XXXXXX"`   | ThermoPro TP59. |
@@ -228,12 +231,6 @@ Please discuss any devices you would like supported [here](https://github.com/to
 | `"WoSensorTH"`      | `"D4E4A3XXXXXX/1"` | Switchbot temperature and humidity sensor. |
 | `"Xiaomi"`          | `"AABBCCDDEEFF"`   | ATC/PVVX sensor on Mi-Like Advertising and Xiaomi LYWSDCGQ. *Can be expanded to more sensors* |
 | `"dev"`             | `"AABBCCDDEEFF"`   | A driver for easy development that prints out received raw data. |
-
-### Supported in BLErry v0.1.x Remaning to Port
-
-| Driver Name    | Mac Example        | Description |
-| -------------- | ------------------ | ----------- |
-| `"GVH5183"`    | `"A4C138XXXXXX"`   | Govee H5183 single probe meat thermometer. |
 
 ## Development Status
 

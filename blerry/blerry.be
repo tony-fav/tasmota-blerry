@@ -9,8 +9,9 @@
 var blerry_version = 'v0.2.0-dev'
 
 # TODO
-#   Port V1 Drivers to V2
-      # 'GVH5183'   : 'blerry_driver_GVH5183.be',
+#   Conform Govee Meat Thermometer Sensor Names across the 3 Devices
+#   Resource Optimization
+#   Switchbot Bot Support
 
 #######################################################################
 # Module Imports
@@ -402,7 +403,7 @@ class Blerry_Device
       'WoPresence'      : 'blerry_driver_WoPresence.be',
       'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
       'GVH5182'         : 'blerry_driver_GVH5184.be',
-      # 'GVH5183'         : 'blerry_driver_GVH5183.be',
+      'GVH5183'         : 'blerry_driver_GVH5183.be',
       'GVH5184'         : 'blerry_driver_GVH5184.be',
     }
     var fn = model_drivers[self.config['model']]    
