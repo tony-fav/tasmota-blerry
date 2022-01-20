@@ -209,6 +209,7 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 | `"ATCpvvx"`         | `"A4C138XXXXXX"`   | Xiaomi sensors on ATC or pvvx firmware with "ATC1441" or "Custom" advertisement. |
 | `"GVH5074"`         | `"E33281XXXXXX"`   | Govee H5074. *Need H5051 packets to add support to this driver.* |
 | `"GVH5075"`         | `"A4C138XXXXXX"`   | Govee H5072, H5075, H5101, and H5102. |
+| `"GVH5182"`         | `"C33130XXXXXX/1"` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
 | `"GVH5184"`         | `"D03232XXXXXX/1"` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |
 | `"IBSTH2"`          | `"494208XXXXXX"`   | Inkbird IBSTH1 & IBSTH2 with and without humidity. |
 | `"ThermoPro_TP59"`  | `"487E48XXXXXX"`   | ThermoPro TP59. |
@@ -223,7 +224,6 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 
 | Driver Name    | Mac Example        | Description |
 | -------------- | ------------------ | ----------- |
-| `"GVH5182"`    | `"C33130XXXXXX/1"` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
 | `"GVH5183"`    | `"A4C138XXXXXX"`   | Govee H5183 single probe meat thermometer. |
 
 ## Development Status

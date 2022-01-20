@@ -10,7 +10,6 @@ var blerry_version = 'v0.2.0-dev'
 
 # TODO
 #   Port V1 Drivers to V2
-      # 'GVH5182'   : 'blerry_driver_GVH5182.be',
       # 'GVH5183'   : 'blerry_driver_GVH5183.be',
 
 #######################################################################
@@ -402,7 +401,7 @@ class Blerry_Device
       'WoContact'       : 'blerry_driver_WoContact.be',
       'WoPresence'      : 'blerry_driver_WoPresence.be',
       'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
-      # 'GVH5182'         : 'blerry_driver_GVH5182.be',
+      'GVH5182'         : 'blerry_driver_GVH5184.be',
       # 'GVH5183'         : 'blerry_driver_GVH5183.be',
       'GVH5184'         : 'blerry_driver_GVH5184.be',
     }
