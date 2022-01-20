@@ -485,12 +485,14 @@ class Blerry_Device
       if self.config.contains('calibration')       # if calibration is defined in the config
         for k:self.config['calibration'].keys()    # loop over sensors being calibrated
           if msg.contains(k)                       # if we have that sensor value to calibrate
-            var c = self.config['calibration'][k]  # calibration has to be a list
-            if isinstance(c, list)
-              if size(c) == 1                      # size 1 = just a delta
-                msg[k] = c[0] + msg[k]
-              elif size(c) == 2
-                msg[k] = c[0] + c[1]*msg[k]        # size 2 = delta and slope
+            if type(msg[k]) == 'real' || type(msg[k]) == 'int'
+              var c = self.config['calibration'][k]  # calibration has to be a list
+              if isinstance(c, list)
+                if size(c) == 1                      # size 1 = just a delta
+                  msg[k] = c[0] + msg[k]
+                elif size(c) == 2
+                  msg[k] = c[0] + c[1]*msg[k]        # size 2 = delta and slope
+                end
               end
             end
           end
@@ -501,7 +503,9 @@ class Blerry_Device
       if self.config.contains('precision')       # if precision is defined in the config
         for k:self.config['precision'].keys()    # loop over sensors being rounded
           if msg.contains(k)                     # if we have that sensor value to round
-            msg[k] = blerry_helpers.round(msg[k], self.config['precision'][k])
+            if type(msg[k]) == 'real' || type(msg[k]) == 'int'
+              msg[k] = blerry_helpers.round(msg[k], self.config['precision'][k])
+            end
           end
         end
       end
