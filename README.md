@@ -209,6 +209,7 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 - Enable a higher weblog level when restarting (`Weblog 4` then `Restart 1`) to watch for errors during boot.
 - Try loading BLErry just in the console with `br load('blerry.be')` and watch the logs for errors.
 - Hop in the #blerry thread in the #tasmota channel of Digiblur's discord.
+- Add a rule which enables device restart on wifi disconnect such as `ON Wifi#Connected Do RuleTimer1 0 ENDON ON Wifi#Disconnected Do RuleTimer1 60 ENDON ON Rules#Timer=1 Do Restart 1 ENDON`
 
 ## Supported Devices in BLErry v0.2.x
 
