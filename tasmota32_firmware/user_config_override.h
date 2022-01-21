@@ -107,6 +107,9 @@ Examples :
 
 #define USE_BLE_ESP32
 
+#define SET_ESP32_STACK_SIZE (24 * 1024) // same as LVGL
+#define USE_TLS
+
 #endif  // FIRMWARE_BLE_BERRY
 
 // -- MQTT - Telemetry ----------------------------
