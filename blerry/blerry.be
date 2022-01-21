@@ -887,6 +887,7 @@ class Blerry_Driver : Driver
   end
 
   def web_sensor()
+    var so8 = tasmota.get_option(8)
     var msg = ""
     for d:self.b.devices
       msg = msg + "{s}<hr>{m}<hr>{e}"
@@ -900,7 +901,11 @@ class Blerry_Driver : Driver
       if size(d.sensors)
         msg = msg + string.format("{s}-- Sensors --{m}<hr>{e}", d.alias)
         for s:d.sensors
-          msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
+          if (so8) && (s.unit_of_meas == '°C')
+            msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, 1.8*s.value + 32, '°F')
+          else
+            msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
+          end
         end
       end
       if size(d.binary_sensors)
