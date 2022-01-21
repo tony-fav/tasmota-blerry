@@ -336,6 +336,23 @@ class Blerry_Binary_Sensor
 end
 
 #######################################################################
+# Blerry_Action
+#######################################################################
+class Blerry_Action
+  var name
+  var command
+
+  def init(name, command)
+    self.name = name
+    self.command = command
+  end
+
+  def execute()
+    return tasmota.cmd(self.command)
+  end
+end
+
+#######################################################################
 # Blerry_Device
 #######################################################################
 class Blerry_Device
@@ -350,6 +367,8 @@ class Blerry_Device
   var sensors_to_discover
   var binary_sensors
   var binary_sensors_to_discover
+  var actions
+  var actions_to_discover
   var topic
   var publish_available
   var next_forced_publish
@@ -365,6 +384,8 @@ class Blerry_Device
     self.sensors_to_discover = []
     self.binary_sensors = {}
     self.binary_sensors_to_discover = []
+    self.actions = {}
+    self.actions_to_discover = []
 
     # static attributes
     self.add_attribute('MAC', self.mac)
@@ -400,6 +421,7 @@ class Blerry_Device
       'Xiaomi_LYWSDCGQ' : 'blerry_driver_Xiaomi.be',
       'ThermoPro_TP59'  : 'blerry_driver_ThermoPro_TP59.be',
       'WoContact'       : 'blerry_driver_WoContact.be',
+      'WoHand'          : 'blerry_driver_WoHand.be',
       'WoPresence'      : 'blerry_driver_WoPresence.be',
       'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
       'GVH5182'         : 'blerry_driver_GVH5184.be',
@@ -424,6 +446,25 @@ class Blerry_Device
       return self.attributes[name]
     else
       return nil
+    end
+  end
+
+  def add_action_force(name, command)
+    self.actions[name] = Blerry_Action(name, command)
+    if self.actions_to_discover.find(name) == nil
+      self.actions_to_discover.push(name)
+    end
+  end
+
+  def add_action(name, command)
+    if !self.actions.contains(name)
+      self.add_action_force(name, command)
+    end
+  end
+
+  def execute_action(name)
+    if self.actions.contains(name)
+      self.actions[name].execute()
     end
   end
 
@@ -521,8 +562,11 @@ class Blerry_Device
   end
 
   def publish_discovery()
-    self.publish_sensor_discovery()
-    self.publish_binary_sensor_discovery()
+    if self.config['discovery']
+      self.publish_sensor_discovery()
+      self.publish_binary_sensor_discovery()
+      self.publish_action_discovery()
+    end
   end
 
   def get_discovery_packet_base() # Make each time so it can be GC'd. Don't save as a member of the class.
@@ -600,6 +644,23 @@ class Blerry_Device
       self.binary_sensors_to_discover = []
     end
   end
+  
+  def publish_action_discovery()
+    var topic_fmt = 'homeassistant/button/blerry_' + self.alias + '/%s/config'
+    if size(self.actions_to_discover)
+      var msg = self.get_discovery_packet_base()
+
+      # the parts that are unique to each sensor
+      for a:self.actions_to_discover
+        msg['name'] = self.alias + ' ' + self.actions[a].name
+        msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.actions[a].name
+        msg['cmd_t'] = self.b.device_cmnd_topic + '/BlerryAction'
+        msg['payload_press'] = json.dump({self.mac: self.actions[a].name})
+        tasmota.publish(string.format(topic_fmt, a), json.dump(msg), self.config['discovery_retain'])
+      end
+      self.actions_to_discover = []
+    end
+  end
 end
 
 #######################################################################
@@ -620,6 +681,7 @@ class Blerry
   var tele_prefix
   var full_topic_f
   var hostname
+  var device_cmnd_topic
   var device_tele_topic
 
 
@@ -639,6 +701,10 @@ class Blerry
     self.tele_prefix = tasmota.cmd('Prefix3')['Prefix3']
     self.full_topic_f = tasmota.cmd('FullTopic')['FullTopic']
     self.hostname = tasmota.cmd('Status 5')['StatusNET']['Hostname']
+    self.device_cmnd_topic = blerry_helpers.string_replace(blerry_helpers.string_replace(self.full_topic_f, '%prefix%', self.cmnd_prefix), '%topic%', self.device_topic)
+    if self.device_cmnd_topic[-1] == '/' # allow / at the end but remove it here
+      self.device_cmnd_topic = self.device_cmnd_topic[0..-2]
+    end
     self.device_tele_topic = blerry_helpers.string_replace(blerry_helpers.string_replace(self.full_topic_f, '%prefix%', self.tele_prefix), '%topic%', self.device_topic)
     if self.device_tele_topic[-1] == '/' # allow / at the end but remove it here
       self.device_tele_topic = self.device_tele_topic[0..-2]
@@ -691,7 +757,7 @@ class Blerry
     self.default_config = 
     {
       'base_topic': 'tele/tasmota_blerry',
-      'discovery': false,
+      'discovery': true,
       'discovery_retain': true,
       'use_lwt': false,
       'via_pubs': false,
@@ -791,6 +857,15 @@ class Blerry
   def load_success()
     print('BLY: BLErry ' + blerry_version + ' Loaded Successfully')
   end
+
+  def execute_action(cmd, idx, payload, payload_json)
+    tasmota.resp_cmnd_done()
+    for k:payload_json.keys()
+      if self.devices.contains(k)
+        self.devices[k].execute_action(payload_json[k])
+      end
+    end
+  end
 end
 
 #######################################################################
@@ -849,4 +924,5 @@ tasmota.add_cmd("BlerryDelDevice", blerry_helpers.cmd_del_device)
 tasmota.add_cmd("BlerryGetConfig", blerry_helpers.cmd_get_config)
 tasmota.add_cmd("BlerrySetConfig", blerry_helpers.cmd_set_config)
 tasmota.add_cmd("BlerryDelConfig", blerry_helpers.cmd_del_config)
+tasmota.add_cmd("BlerryAction", / cmd, idx, payload, payload_json -> blerry.execute_action(cmd, idx, payload, payload_json))
 blerry.load_success()
