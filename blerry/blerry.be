@@ -596,70 +596,62 @@ class Blerry_Device
     return msg
   end
 
+  def get_discovery_override(msg, name)
+    if self.config.contains('discovery_override')
+      if self.config['discovery_override'].contains(name)
+        for k:self.config['discovery_override'][name].keys()
+          msg[k] = self.config['discovery_override'][name][k]
+        end
+      end
+    end
+    return msg
+  end
+
   def publish_sensor_discovery()
     var topic_fmt = 'homeassistant/sensor/blerry_' + self.alias + '/%s/config'
-    if size(self.sensors_to_discover)
+    for s:self.sensors_to_discover
       var msg = self.get_discovery_packet_base()
-
-      # sensor timeout
-      msg['exp_aft'] = 600
-
-      # the parts that are unique to each sensor
-      for s:self.sensors_to_discover
-        msg['name'] = self.alias + ' ' + self.sensors[s].name
-        msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.sensors[s].name
-        msg['dev_cla'] = self.sensors[s].dev_cla
-        msg['unit_of_meas'] = self.sensors[s].unit_of_meas
-        msg['val_tpl'] = '{{ value_json.' + self.sensors[s].name + ' }}'
-
-        # Here, I can implement an override from the config
-
-        tasmota.publish(string.format(topic_fmt, s), json.dump(msg), self.config['discovery_retain'])
-      end
-      self.sensors_to_discover = []
+      msg['exp_aft'] = 600  
+      msg['name'] = self.alias + ' ' + self.sensors[s].name
+      msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.sensors[s].name
+      msg['dev_cla'] = self.sensors[s].dev_cla
+      msg['unit_of_meas'] = self.sensors[s].unit_of_meas
+      msg['val_tpl'] = '{{ value_json.' + self.sensors[s].name + ' }}'
+      msg = self.get_discovery_override(msg, s)
+      tasmota.publish(string.format(topic_fmt, s), json.dump(msg), self.config['discovery_retain'])
     end
+    self.sensors_to_discover = []
   end
 
   def publish_binary_sensor_discovery()
     var topic_fmt = 'homeassistant/binary_sensor/blerry_' + self.alias + '/%s/config'
-    if size(self.binary_sensors_to_discover)
+    for s:self.binary_sensors_to_discover
       var msg = self.get_discovery_packet_base()
-
-      # sensor timeout
       msg['exp_aft'] = 600
-
-      # the parts that are unique to each sensor
-      for s:self.binary_sensors_to_discover
-        msg['name'] = self.alias + ' ' + self.binary_sensors[s].name
-        msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.binary_sensors[s].name
-        if self.binary_sensors[s].dev_cla != 'none'
-          msg['dev_cla'] = self.binary_sensors[s].dev_cla
-        end
-        msg['val_tpl'] = '{{ value_json.' + self.binary_sensors[s].name + ' }}'
-
-        # Here, I can implement an override from the config
-
-        tasmota.publish(string.format(topic_fmt, s), json.dump(msg), self.config['discovery_retain'])
+      msg['name'] = self.alias + ' ' + self.binary_sensors[s].name
+      msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.binary_sensors[s].name
+      if self.binary_sensors[s].dev_cla != 'none'
+        msg['dev_cla'] = self.binary_sensors[s].dev_cla
       end
-      self.binary_sensors_to_discover = []
+      msg['val_tpl'] = '{{ value_json.' + self.binary_sensors[s].name + ' }}'
+      msg = self.get_discovery_override(msg, s)
+      tasmota.publish(string.format(topic_fmt, s), json.dump(msg), self.config['discovery_retain'])
     end
+    self.binary_sensors_to_discover = []
   end
   
   def publish_action_discovery()
     var topic_fmt = 'homeassistant/button/blerry_' + self.alias + '/%s/config'
-    if size(self.actions_to_discover)
+    for a:self.actions_to_discover
       var msg = self.get_discovery_packet_base()
-
-      # the parts that are unique to each sensor
-      for a:self.actions_to_discover
-        msg['name'] = self.alias + ' ' + self.actions[a].name
-        msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.actions[a].name
-        msg['cmd_t'] = self.b.device_cmnd_topic + '/BlerryAction'
-        msg['payload_press'] = json.dump({self.mac: self.actions[a].name})
-        tasmota.publish(string.format(topic_fmt, a), json.dump(msg), self.config['discovery_retain'])
-      end
-      self.actions_to_discover = []
+      msg['name'] = self.alias + ' ' + self.actions[a].name
+      msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.actions[a].name
+      msg['cmd_t'] = self.b.device_cmnd_topic + '/BlerryAction'
+      msg['payload_press'] = json.dump({self.mac: self.actions[a].name})
+      msg = self.get_discovery_override(msg, a)
+      tasmota.publish(string.format(topic_fmt, a), json.dump(msg), self.config['discovery_retain'])
     end
+    self.actions_to_discover = []
   end
 end
 
