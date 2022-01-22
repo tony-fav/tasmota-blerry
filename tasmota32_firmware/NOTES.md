@@ -8,5 +8,6 @@ I have built it for regular ESP32, ESP32-C3, and ESP32 Single Cores (solo1 binar
 
 As always, these binaries come with no warranty or guarantee of any kind. If you don't trust downloading from here, I have uploaded the user_config_override.h and platformio_override.ini used to compile the binaries and they are compiled against https://github.com/tony-fav/Tasmota/tree/dev-linkind-dim
 
-- 2022/01/21: Updated to have USE_TLS and increased stack size.
-- 2022/01/21: Updated dev-linkind-dim branch to have 25% BLE duty cycle rather than 50%
+- 2021/01/21-2: Updated to have `SetOption56 1` and `SetOption57 0` as defaults.
+- 2022/01/21-1: Updated to have USE_TLS and increased stack size.
+- 2022/01/21-1: Updated dev-linkind-dim branch to have 25% BLE duty cycle rather than 50%

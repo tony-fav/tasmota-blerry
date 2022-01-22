@@ -110,6 +110,12 @@ Examples :
 #define SET_ESP32_STACK_SIZE (24 * 1024) // same as LVGL
 #define USE_TLS
 
+#undef  WIFI_SCAN_AT_RESTART
+#define WIFI_SCAN_AT_RESTART true
+
+#undef  WIFI_SCAN_REGULARLY
+#define WIFI_SCAN_REGULARLY false
+
 #endif  // FIRMWARE_BLE_BERRY
 
 // -- MQTT - Telemetry ----------------------------
