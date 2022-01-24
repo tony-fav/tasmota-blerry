@@ -81,7 +81,13 @@ would rewrite the entire configuration file to be the provided JSON.
 
 These commands work like regular Tasmota commands, available through the console, serial, MQTT, HTTP request, etc.
 
+### Alternate to System#Boot Rule
 
+If you would like a fully berry solution to loading BLErry. Add the following line to `autoexec.be`
+
+```tasmota.add_rule('System#Boot', / -> tasmota.set_timer(10000, / -> load('blerry.be')))```
+
+This works similar to the rule but with a 10s. This delay seems to be required for BLErry to load properly. This is *likely* due to slight timing differences between Berry's rule processing and Tasmota's rule processing. This delay is also useful if you are running something like Tasmota Device Manager which also asks the ESP32 to do quite a lot at system boot.
 
 ### Manual Setup
 
