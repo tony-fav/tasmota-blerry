@@ -100,12 +100,16 @@ Examples :
 #define USE_TASMOTA_DISCOVERY
 #undef USE_HOME_ASSISTANT
 
-#ifndef USE_BERRY
-#define USE_BERRY
-#endif
-#define USE_BERRY_DEBUG
-
-#define USE_BLE_ESP32
+#define USE_BERRY                                // Enable Berry scripting language
+  #define USE_BERRY_PYTHON_COMPAT                // Enable by default `import python_compat`
+  #define USE_BERRY_TIMEOUT             4000     // Timeout in ms, will raise an exception if running time exceeds this timeout
+  #define USE_BERRY_PSRAM                        // Allocate Berry memory in PSRAM if PSRAM is connected - this might be slightly slower but leaves main memory intact
+  #define USE_BERRY_DEBUG                        // Compile Berry bytecode with line number information, makes exceptions easier to debug. Adds +8% of memory consumption for compiled code
+  #define USE_WEBCLIENT                          // Enable `webclient` to make HTTP/HTTPS requests. Can be disabled for security reasons.
+    #define USE_WEBCLIENT_HTTPS                  // Enable HTTPS outgoing requests based on BearSSL (much ligher then mbedTLS, 42KB vs 150KB) in insecure mode (no verification of server's certificate)
+                                                 // Note that only one cipher is enabled: ECDHE_RSA_WITH_AES_128_GCM_SHA256 which is very commonly used and highly secure
+    #define USE_BERRY_WEBCLIENT_USERAGENT  "TasmotaClient" // default user-agent used, can be changed with `wc.set_useragent()`
+    #define USE_BERRY_WEBCLIENT_TIMEOUT  2000    // Default timeout in milliseconds
 
 #define SET_ESP32_STACK_SIZE (24 * 1024) // same as LVGL
 #define USE_TLS
@@ -115,6 +119,8 @@ Examples :
 
 #undef  WIFI_SCAN_REGULARLY
 #define WIFI_SCAN_REGULARLY false
+
+#define USE_BLE_ESP32
 
 #endif  // FIRMWARE_BLE_BERRY
 
