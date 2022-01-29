@@ -506,7 +506,6 @@ class Blerry_Device
 
   def publish()
     if self.publish_available
-      self.next_forced_publish = tasmota.millis(300000)
       var msg = {}
       for a:self.attributes
         msg[a.name] = a.value
@@ -557,16 +556,27 @@ class Blerry_Device
           tasmota.publish(self.topic + '/' + k, string.format('%s', msg[k]), self.config['sensor_retain'])
         end
       end
+
+      self.next_forced_publish = tasmota.millis(300000)
       self.publish_available = false
+      return true
     end
+    return false
   end
 
   def publish_discovery()
     if self.config['discovery']
-      self.publish_sensor_discovery()
-      self.publish_binary_sensor_discovery()
-      self.publish_action_discovery()
+      if self.publish_sensor_discovery()
+        return true
+      end
+      if self.publish_binary_sensor_discovery()
+        return true
+      end
+      if self.publish_action_discovery()
+        return true
+      end
     end
+    return false
   end
 
   def get_discovery_packet_base() # Make each time so it can be GC'd. Don't save as a member of the class.
@@ -609,7 +619,8 @@ class Blerry_Device
 
   def publish_sensor_discovery()
     var topic_fmt = 'homeassistant/sensor/blerry_' + self.alias + '/%s/config'
-    for s:self.sensors_to_discover
+    if size(self.sensors_to_discover)
+      var s = self.sensors_to_discover[0]
       var msg = self.get_discovery_packet_base()
       msg['exp_aft'] = 600  
       msg['name'] = self.alias + ' ' + self.sensors[s].name
@@ -619,13 +630,16 @@ class Blerry_Device
       msg['val_tpl'] = '{{ value_json.' + self.sensors[s].name + ' }}'
       msg = self.get_discovery_override(msg, s)
       tasmota.publish(string.format(topic_fmt, s), json.dump(msg), self.config['discovery_retain'])
+      self.sensors_to_discover = self.sensors_to_discover[1..]
+      return true
     end
-    self.sensors_to_discover = []
+    return false
   end
 
   def publish_binary_sensor_discovery()
     var topic_fmt = 'homeassistant/binary_sensor/blerry_' + self.alias + '/%s/config'
-    for s:self.binary_sensors_to_discover
+    if size(self.binary_sensors_to_discover)
+      var s = self.binary_sensors_to_discover[0]
       var msg = self.get_discovery_packet_base()
       msg['exp_aft'] = 600
       msg['name'] = self.alias + ' ' + self.binary_sensors[s].name
@@ -636,13 +650,16 @@ class Blerry_Device
       msg['val_tpl'] = '{{ value_json.' + self.binary_sensors[s].name + ' }}'
       msg = self.get_discovery_override(msg, s)
       tasmota.publish(string.format(topic_fmt, s), json.dump(msg), self.config['discovery_retain'])
+      self.binary_sensors_to_discover = self.binary_sensors_to_discover[1..]
+      return true
     end
-    self.binary_sensors_to_discover = []
+    return false
   end
   
   def publish_action_discovery()
     var topic_fmt = 'homeassistant/button/blerry_' + self.alias + '/%s/config'
-    for a:self.actions_to_discover
+    if size(self.actions_to_discover)
+      var a = self.actions_to_discover[0]
       var msg = self.get_discovery_packet_base()
       msg['name'] = self.alias + ' ' + self.actions[a].name
       msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.actions[a].name
@@ -650,8 +667,10 @@ class Blerry_Device
       msg['payload_press'] = json.dump({self.mac: self.actions[a].name})
       msg = self.get_discovery_override(msg, a)
       tasmota.publish(string.format(topic_fmt, a), json.dump(msg), self.config['discovery_retain'])
+      self.actions_to_discover = self.actions_to_discover[1..]
+      return true
     end
-    self.actions_to_discover = []
+    return false
   end
 end
 
@@ -836,14 +855,20 @@ class Blerry
 
   def publish()
     for d:self.devices
-      d.publish()
+      if d.publish()
+        return true
+      end
     end
+    return false
   end
 
   def publish_discovery()
     for d:self.devices
-      d.publish_discovery()
+      if d.publish_discovery()
+        return true
+      end
     end
+    return false
   end
 
   def load_success()
@@ -874,8 +899,12 @@ class Blerry_Driver : Driver
   end
 
   def every_second()
-    self.b.publish_discovery()
-    self.b.publish()
+    if self.b.publish_discovery()
+      return true
+    end
+    if self.b.publish()
+      return true
+    end
   end
 
   def web_sensor()
