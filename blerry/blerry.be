@@ -894,10 +894,14 @@ end
 class Blerry_Driver : Driver
   var b
   var d_idx
+  var next_send
+  var last_sent
 
   def init(blerry_inst)
     self.b = blerry_inst
     self.d_idx = 0
+    self.next_send = tasmota.millis(10000)
+    self.last_sent = ''
   end
 
   def every_second()
@@ -910,50 +914,54 @@ class Blerry_Driver : Driver
   end
 
   def web_sensor()
-    var so8 = tasmota.get_option(8)
-    var msg = ""
-    var d
-    var i = 0
-    self.d_idx = (self.d_idx + 1) % size(self.b.devices)
-    for de:self.b.devices
-      if i == self.d_idx
-        d = de
-        break
+    if tasmota.millis() > self.next_send
+      self.next_send = tasmota.millis(10000)
+      var so8 = tasmota.get_option(8)
+      var msg = ""
+      var d
+      var i = 0
+      self.d_idx = (self.d_idx + 1) % size(self.b.devices)
+      for de:self.b.devices
+        if i == self.d_idx
+          d = de
+          break
+        end
+        i = i + 1
       end
-      i = i + 1
-    end
-    msg = msg + "{s}<hr>{m}<hr>{e}"
-    msg = msg + string.format("{s}BLErry Device{m}%d of %d{e}", self.d_idx+1, size(self.b.devices))
-    if size(d.attributes)
-      msg = msg + string.format("{s}-- Attributes --{m}<hr>{e}", d.alias)
-      for a:d.attributes
-        msg = msg + string.format("{s}%s{m}%s{e}", a.name, a.value)
-      end
-    end
-    if size(d.sensors)
-      msg = msg + string.format("{s}-- Sensors --{m}<hr>{e}", d.alias)
-      for s:d.sensors
-        if type(s.value) == 'real' || type(s.value) == 'int'
-          if (so8) && (s.unit_of_meas == '°C')
-            msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, 1.8*s.value + 32, '°F')
-          elif (!so8) && (s.unit_of_meas == '°F')
-            msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, (s.value - 32)/1.8, '°C')
-          else
-            msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
-          end
-        else
-          msg = msg + string.format("{s}%s{m}%s %s{e}", s.name, str(s.value), s.unit_of_meas)
+      msg = msg + "{s}<hr>{m}<hr>{e}"
+      msg = msg + string.format("{s}BLErry Device{m}%d of %d{e}", self.d_idx+1, size(self.b.devices))
+      if size(d.attributes)
+        msg = msg + string.format("{s}-- Attributes --{m}<hr>{e}", d.alias)
+        for a:d.attributes
+          msg = msg + string.format("{s}%s{m}%s{e}", a.name, a.value)
         end
       end
-    end
-    if size(d.binary_sensors)
-      msg = msg + string.format("{s}-- Binary Sensors --{m}<hr>{e}", d.alias)
-      for bs:d.binary_sensors
-        msg = msg + string.format("{s}%s{m}%s{e}", bs.name, bs.value)
+      if size(d.sensors)
+        msg = msg + string.format("{s}-- Sensors --{m}<hr>{e}", d.alias)
+        for s:d.sensors
+          if type(s.value) == 'real' || type(s.value) == 'int'
+            if (so8) && (s.unit_of_meas == '°C')
+              msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, 1.8*s.value + 32, '°F')
+            elif (!so8) && (s.unit_of_meas == '°F')
+              msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, (s.value - 32)/1.8, '°C')
+            else
+              msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
+            end
+          else
+            msg = msg + string.format("{s}%s{m}%s %s{e}", s.name, str(s.value), s.unit_of_meas)
+          end
+        end
       end
+      if size(d.binary_sensors)
+        msg = msg + string.format("{s}-- Binary Sensors --{m}<hr>{e}", d.alias)
+        for bs:d.binary_sensors
+          msg = msg + string.format("{s}%s{m}%s{e}", bs.name, bs.value)
+        end
+      end
+      msg = msg + "{s}<hr>{m}<hr>{e}"
+      self.last_sent = msg
     end
-    msg = msg + "{s}<hr>{m}<hr>{e}"
-    tasmota.web_send_decimal(msg)
+    tasmota.web_send_decimal(self.last_sent)
   end
 end
 
