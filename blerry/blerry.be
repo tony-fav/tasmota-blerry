@@ -893,9 +893,11 @@ end
 #######################################################################
 class Blerry_Driver : Driver
   var b
+  var d_idx
 
   def init(blerry_inst)
     self.b = blerry_inst
+    self.d_idx = 0
   end
 
   def every_second()
@@ -910,36 +912,44 @@ class Blerry_Driver : Driver
   def web_sensor()
     var so8 = tasmota.get_option(8)
     var msg = ""
-    for d:self.b.devices
-      msg = msg + "{s}<hr>{m}<hr>{e}"
-      msg = msg + "{s}BLErry Device{m}<hr>{e}"
-      if size(d.attributes)
-        msg = msg + string.format("{s}-- Attributes --{m}<hr>{e}", d.alias)
-        for a:d.attributes
-          msg = msg + string.format("{s}%s{m}%s{e}", a.name, a.value)
-        end
+    var d
+    var i = 0
+    self.d_idx = (self.d_idx + 1) % size(self.b.devices)
+    for de:self.b.devices
+      if i == self.d_idx
+        d = de
+        break
       end
-      if size(d.sensors)
-        msg = msg + string.format("{s}-- Sensors --{m}<hr>{e}", d.alias)
-        for s:d.sensors
-          if type(s.value) == 'real' || type(s.value) == 'int'
-            if (so8) && (s.unit_of_meas == '°C')
-              msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, 1.8*s.value + 32, '°F')
-            elif (!so8) && (s.unit_of_meas == '°F')
-              msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, (s.value - 32)/1.8, '°C')
-            else
-              msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
-            end
+      i = i + 1
+    end
+    msg = msg + "{s}<hr>{m}<hr>{e}"
+    msg = msg + string.format("{s}BLErry Device{m}%d of %d{e}", self.d_idx+1, size(self.b.devices))
+    if size(d.attributes)
+      msg = msg + string.format("{s}-- Attributes --{m}<hr>{e}", d.alias)
+      for a:d.attributes
+        msg = msg + string.format("{s}%s{m}%s{e}", a.name, a.value)
+      end
+    end
+    if size(d.sensors)
+      msg = msg + string.format("{s}-- Sensors --{m}<hr>{e}", d.alias)
+      for s:d.sensors
+        if type(s.value) == 'real' || type(s.value) == 'int'
+          if (so8) && (s.unit_of_meas == '°C')
+            msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, 1.8*s.value + 32, '°F')
+          elif (!so8) && (s.unit_of_meas == '°F')
+            msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, (s.value - 32)/1.8, '°C')
           else
-            msg = msg + string.format("{s}%s{m}%s %s{e}", s.name, str(s.value), s.unit_of_meas)
+            msg = msg + string.format("{s}%s{m}%g %s{e}", s.name, s.value, s.unit_of_meas)
           end
+        else
+          msg = msg + string.format("{s}%s{m}%s %s{e}", s.name, str(s.value), s.unit_of_meas)
         end
       end
-      if size(d.binary_sensors)
-        msg = msg + string.format("{s}-- Binary Sensors --{m}<hr>{e}", d.alias)
-        for bs:d.binary_sensors
-          msg = msg + string.format("{s}%s{m}%s{e}", bs.name, bs.value)
-        end
+    end
+    if size(d.binary_sensors)
+      msg = msg + string.format("{s}-- Binary Sensors --{m}<hr>{e}", d.alias)
+      for bs:d.binary_sensors
+        msg = msg + string.format("{s}%s{m}%s{e}", bs.name, bs.value)
       end
     end
     msg = msg + "{s}<hr>{m}<hr>{e}"
