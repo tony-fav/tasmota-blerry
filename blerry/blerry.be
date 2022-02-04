@@ -67,13 +67,6 @@ class blerry_helpers
     return (x & (1 << i)) >> i
   end
 
-  static def twos_complement(n, w)
-    if n & (1 << (w - 1))
-      n = n - (1 << w)
-    end
-    return n
-  end
-
   static def read_config()
     var config
     if path.exists("blerry_config.json")
