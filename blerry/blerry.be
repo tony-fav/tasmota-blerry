@@ -63,18 +63,6 @@ class blerry_helpers
     return z
   end
 
-  static def string_upper(x)
-    var y = ''
-    for i:0..size(x)-1
-      var b = string.byte(x[i])
-      if b >= 97 && b <= 122
-        b = b - 32
-      end
-      y = y + string.char(b)
-    end
-    return y
-  end
-
   static def bitval(x, i)
     return (x & (1 << i)) >> i
   end
@@ -117,7 +105,7 @@ class blerry_helpers
 
   static def cmd_get_device(cmd, idx, payload, payload_json)
     var config = blerry_helpers.read_config()
-    tasmota.resp_cmnd(json.dump({payload: config['devices'][blerry_helpers.string_upper(payload)]}))
+    tasmota.resp_cmnd(json.dump({string.toupper(payload): config['devices'][string.toupper(payload)]}))
   end
   
   static def cmd_del_device(cmd, idx, payload, payload_json)
@@ -749,8 +737,7 @@ class Blerry
     # sanitize mac addresses to be upper case
     var new_devices = {}
     for k:self.user_config['devices'].keys()
-      var K = blerry_helpers.string_upper(k)
-      new_devices[K] = self.user_config['devices'][k]
+      new_devices[string.toupper(k)] = self.user_config['devices'][k]
     end
     self.user_config['devices'] = new_devices
 
