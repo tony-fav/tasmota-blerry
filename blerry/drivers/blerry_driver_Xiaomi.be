@@ -4,6 +4,7 @@ def blerry_handle(device, advert)
   if size(elements)
     var data = elements[0].data[2..]
     if blerry_helpers.bitval(data[0], 6) == 0 # is there data in packet
+      print('BLY: Xiaomi: Data flag in packet is 0.')
       return false
     end
     if blerry_helpers.bitval(data[0], 3) == 1 # encrypted
