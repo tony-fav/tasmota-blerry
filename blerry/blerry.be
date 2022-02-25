@@ -9,15 +9,16 @@
 
 # --------- USER INPUT ---------
 # user_config map (mac and config options pairs)
-#   alias               REQUIRED                        name you are assigning the device
-#   model               OPTIONAL (default = 'ATCpvvx')  BLE device model to associate with mac
-#   discovery           OPTIONAL (default = false)      publish HA MQTT discovery payloads
-#   use_lwt             OPTIONAL (default = false)      use LWT for availability in discovery payloads (discovery packet also include 600s timeout of sensor data)
-#   via_pubs            OPTIONAL (default = false)      publish Time_via_%topic% and RSSI_via_%topic% data with each data set
-#   sensor_retain       OPTIONAL (default = false)      add retain flag to sensor data set publishes
-#   publish_attributes  OPTIONAL (default = false)      publish individual topics for each attribute in addition to the JSON payload
-#   temp_precision      OPTIONAL (default = 2, int)     digits of precision for temperature
-#   humi_precision      OPTIONAL (default = 1, int)     digits of precision for humidity
+#   alias               REQUIRED                            name you are assigning the device
+#   entity_id           OPTIONAL (default = modified alias) Entity ID to assign the device in HA. If not specified, it will be derived from the alias (spaces replaced with underscores and all lowercase)
+#   model               OPTIONAL (default = 'ATCpvvx')      BLE device model to associate with mac
+#   discovery           OPTIONAL (default = false)          publish HA MQTT discovery payloads
+#   use_lwt             OPTIONAL (default = false)          use LWT for availability in discovery payloads (discovery packet also include 600s timeout of sensor data)
+#   via_pubs            OPTIONAL (default = false)          publish Time_via_%topic% and RSSI_via_%topic% data with each data set
+#   sensor_retain       OPTIONAL (default = false)          add retain flag to sensor data set publishes
+#   publish_attributes  OPTIONAL (default = false)          publish individual topics for each attribute in addition to the JSON payload
+#   temp_precision      OPTIONAL (default = 2, int)         digits of precision for temperature
+#   humi_precision      OPTIONAL (default = 1, int)         digits of precision for humidity
 var user_config = {
                    'A4C138AAAAAA': {'alias': 'trial_govee5075', 'model': 'GVH5075', 'discovery': true},
                    'A4C138BBBBBB': {'alias': 'other_govee5075', 'model': 'GVH5075', 'via_pubs': false},
@@ -27,7 +28,7 @@ var user_config = {
                    'C33130XXXXXX/1': {'alias': 'govee5182-2probe-meats', 'model': 'GVH5182'},
                    'A4C138XXXXXX': {'alias': 'govee5183meats', 'model': 'GVH5183'},
                    'D03232XXXXXX/1': {'alias': 'govee5184-4probe-meats', 'model': 'GVH5184'},
-                   'A4C138CCCCCC': {'alias': 'trial_ATCpvvx', 'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true},
+                   'A4C138CCCCCC': {'alias': 'ATCpvvx Shower', 'entity_id': 'atcpvvx_shower',  'model': 'ATCpvvx', 'discovery': true, 'use_lwt': true},
                    'A4C138CCCCCC': {'alias': 'ATC_on_milike', 'model': 'ATCmi'},
                    '494208DDDDDD': {'alias': 'trial_inkbird', 'model': 'IBSTH2', 'discovery': true},
                    'D4E4A3BBBBBB/1': {'alias': 'sbot_TH', 'model': 'WoSensorTH'},

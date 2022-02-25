@@ -83,7 +83,7 @@ def handle_GVH5184(value, trigger, msg)
             output_map['Temperature_'+str(j+k)+'_Target'] = probeset[3]
           end
         end
-        var this_topic = base_topic + '/' + this_device['alias']
+        var this_topic = base_topic + '/' + this_device['entity_id']
         tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
         if this_device['publish_attributes']
           for output_key:output_map.keys()

@@ -47,7 +47,7 @@ def handle_GVH5183(value, trigger, msg)
           output_map['Temperature_Target'] = round(this_data[2]/100.0, this_device['temp_precision'])
           output_map['Temperature_Calibration_C'] = round(this_data[3]/100.0, this_device['temp_precision'])
           output_map['Temperature_Calibration_F'] = round(this_data[3]/100.0*1.8, this_device['temp_precision'])
-          var this_topic = base_topic + '/' + this_device['alias']
+          var this_topic = base_topic + '/' + this_device['entity_id']
           tasmota.publish(this_topic, json.dump(output_map), this_device['sensor_retain'])
           if this_device['publish_attributes']
             for output_key:output_map.keys()

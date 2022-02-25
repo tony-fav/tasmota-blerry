@@ -62,9 +62,9 @@ def publish_sensor_discovery(mac, prop, dclass, unitm)
   else
     prefix = prefix + '\"avty\": [],'
   end
-  prefix = prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], hostname)
-  prefix = prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
-  tasmota.publish(string.format('homeassistant/sensor/blerry_%s/%s/config', item['alias'], prop), prefix + string.format('\"dev_cla\": \"%s\",\"unit_of_meas\": \"%s\",\"name\": \"%s %s\",\"uniq_id\": \"blerry_%s_%s\",\"val_tpl\": \"{{ value_json.%s }}\"}', dclass, unitm, item['alias'], prop, item['alias'], prop, prop), discovery_retain)
+  prefix = prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['entity_id'], item['alias'], item['model'], hostname)
+  prefix = prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['entity_id'], base_topic, item['entity_id'])
+  tasmota.publish(string.format('homeassistant/sensor/blerry_%s/%s/config', item['entity_id'], prop), prefix + string.format('\"dev_cla\": \"%s\",\"unit_of_meas\": \"%s\",\"name\": \"%s %s\",\"uniq_id\": \"blerry_%s_%s\",\"val_tpl\": \"{{ value_json.%s }}\"}', dclass, unitm, item['alias'], prop, item['entity_id'], prop, prop), discovery_retain)
 end
 
 def publish_binary_sensor_discovery(mac, prop, dclass)
@@ -75,12 +75,12 @@ def publish_binary_sensor_discovery(mac, prop, dclass)
   else
     prefix = prefix + '\"avty\": [],'
   end
-  prefix = prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['alias'], item['alias'], item['model'], hostname)
-  prefix = prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['alias'], base_topic, item['alias'])
+  prefix = prefix + string.format('\"dev\":{\"ids\":[\"blerry_%s\"],\"name\":\"%s\",\"mf\":\"blerry\",\"mdl\":\"%s\",\"via_device\":\"%s\"},', item['entity_id'], item['alias'], item['model'], hostname)
+  prefix = prefix + string.format('\"exp_aft\": 600,\"json_attr_t\": \"%s/%s\",\"stat_t\": \"%s/%s\",', base_topic, item['entity_id'], base_topic, item['entity_id'])
   if dclass != 'none'
     prefix = prefix + string.format('\"dev_cla\": \"%s\",', dclass)
   end
-  tasmota.publish(string.format('homeassistant/binary_sensor/blerry_%s/%s/config', item['alias'], prop), prefix + string.format('\"name\": \"%s %s\",\"uniq_id\": \"blerry_%s_%s\",\"val_tpl\": \"{{ value_json.%s }}\"}', item['alias'], prop, item['alias'], prop, prop), discovery_retain)
+  tasmota.publish(string.format('homeassistant/binary_sensor/blerry_%s/%s/config', item['entity_id'], prop), prefix + string.format('\"name\": \"%s %s\",\"uniq_id\": \"blerry_%s_%s\",\"val_tpl\": \"{{ value_json.%s }}\"}', item['alias'], prop, item['entity_id'], prop, prop), discovery_retain)
 end
 
 # Build complete device config maps
@@ -94,10 +94,16 @@ for mac:user_config.keys()
   device_config[mac]['last_p'] = bytes('')
   device_config[mac]['done_disc'] = false
   device_config[mac]['done_extra_disc'] = false
+  device_config[mac]['entity_id'] = ''
 
   # override with device specific config
   for item:user_config[mac].keys()
     device_config[mac][item] = user_config[mac][item]
+  end
+
+  # derive unique id from alias if not specified by user
+  if device_config[mac]['entity_id'] == ''
+    device_config[mac]['entity_id'] = string.tolower(string_replace(user_config[mac]['alias'], " ", "_"))
   end
 
   # override with global override
@@ -139,7 +145,7 @@ end
 var setup_active = false
 for mac:user_config.keys()
   device_config[mac]['handle'] = device_handles[device_config[mac]['model']]
-  tasmota.cmd(string.format('BLEAlias %s=%s', mac, device_config[mac]['alias']))
+  tasmota.cmd(string.format('BLEAlias %s=%s', mac, device_config[mac]['entity_id']))
   setup_active = setup_active || require_active[device_config[mac]['model']]
 end
 if setup_active
