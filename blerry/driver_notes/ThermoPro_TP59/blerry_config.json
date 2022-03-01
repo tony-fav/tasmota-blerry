@@ -1,0 +1,8 @@
+{
+  "devices": {
+    "487E48F21D00": {
+      "alias": "dev_ThermoPro_TP59",
+      "model": "ThermoPro_TP59"
+    }
+  }
+}
