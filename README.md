@@ -2,6 +2,8 @@
 
 Here's an intro video by @digiblur to get an idea of the how and why! **HOWEVER, setup has changed, gotten simpler, since this video, see below.** Make sure to check out the discussions below.
 
+[Contribute in Dev Branch](https://github.com/tony-fav/tasmota-blerry/tree/dev)
+
 [Feature Requests](https://github.com/tony-fav/tasmota-blerry/discussions/27)
 
 [Device Suggestions](https://github.com/tony-fav/tasmota-blerry/discussions/22)
