@@ -956,3 +956,5 @@ tasmota.add_cmd("BlerrySetConfig", blerry_helpers.cmd_set_config)
 tasmota.add_cmd("BlerryDelConfig", blerry_helpers.cmd_del_config)
 tasmota.add_cmd("BlerryAction", / cmd, idx, payload, payload_json -> blerry.execute_action(cmd, idx, payload, payload_json))
 blerry.load_success()
+
+load('blerry_newBLE.be')
