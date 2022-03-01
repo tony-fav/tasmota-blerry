@@ -142,7 +142,7 @@ class blerry_helpers
   end
 
   static def download_driver(driver_fname)
-    var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/drivers/' + driver_fname
+    var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/main/blerry/drivers/' + driver_fname
     return blerry_helpers.download_file(driver_fname, url)
   end
 

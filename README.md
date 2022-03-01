@@ -24,7 +24,7 @@ Provided your Tasmota32 device has internet access, BLErry can be installed auto
 import path
 def start_blerry_setup()
   var cl = webclient()
-  var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry_setup.be'
+  var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/main/blerry/blerry_setup.be'
   cl.begin(url)
   var r = cl.GET()
   if r != 200
@@ -47,7 +47,7 @@ This script will download a larger setup script and run it which downloads `bler
 Alternately, this setup script can be executed as a Tasmota command:
 
 ```
-br import path; def start_blerry_setup(); var cl = webclient(); var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry_setup.be'; cl.begin(url); var r = cl.GET(); if r != 200; print('error getting blerry_setup.be'); return false; end; var s = cl.get_string(); cl.close(); var f = open('blerry_setup.be', 'w'); f.write(s); f.close(); load('blerry_setup.be'); end; start_blerry_setup()
+br import path; def start_blerry_setup(); var cl = webclient(); var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/main/blerry/blerry_setup.be'; cl.begin(url); var r = cl.GET(); if r != 200; print('error getting blerry_setup.be'); return false; end; var s = cl.get_string(); cl.close(); var f = open('blerry_setup.be', 'w'); f.write(s); f.close(); load('blerry_setup.be'); end; start_blerry_setup()
 ```
 
 ### Tasmota Commands

@@ -100,7 +100,7 @@ def blerry_setup_check_BLE_on()
   end
 end
 def blerry_setup()
-  if blerry_pull_file('blerry.be', 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry.be')
+  if blerry_pull_file('blerry.be', 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/main/blerry/blerry.be')
     blerry_setup_config()
     blerry_remove_files()
     blerry_setup_process_rules()

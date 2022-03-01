@@ -1,7 +1,7 @@
 import path
 def start_blerry_setup()
   var cl = webclient()
-  var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry_setup.be'
+  var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/main/blerry/blerry_setup.be'
   cl.begin(url)
   var r = cl.GET()
   if r != 200
