@@ -17,7 +17,7 @@ def cb()
   var svc_len = buf[10]
   if svc_len
     var p = bytes('00160000') .. buf[11..10+svc_len]
-    print(p)
+    # print(p)
     p[0] = svc_len + 3
     p[2] = buf[7]
     p[3] = buf[8]
