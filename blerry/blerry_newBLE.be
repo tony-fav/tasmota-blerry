@@ -1,3 +1,5 @@
+# https://staars.github.io/site/Bluetooth_MI32/#berry-support
+# https://github.com/arendst/Tasmota/pull/14491
 import string
 var ble, cbp, buf
 def cb()
