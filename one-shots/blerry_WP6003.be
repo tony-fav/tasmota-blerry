@@ -24,8 +24,8 @@ class WP6003 : Driver
       var data = self.buf[1..18]
       print('data: ', data)
       # print('   time: 20', data[1], "/", data[2], "/", data[3], " ", data[4], ":", data[5])
-      print('  tempC: ', data.geti(6, -2)/10)
-      print('  tempF: ', data.get(6, -2)/10*1.8 + 32.0)
+      print('  tempC: ', data.geti(6, -2)/10.0)
+      print('  tempF: ', data.get(6, -2)/10.0*1.8 + 32.0)
       print('   tvoc: ', data.get(10, -2)/1000.0)
       print('   hcho: ', data.get(12, -2)/1000.0)
       print('    co2: ', data.get(16, -2))
