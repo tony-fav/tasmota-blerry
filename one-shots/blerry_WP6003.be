@@ -1,14 +1,15 @@
 # https://github.com/saso5/wp6003/blob/main/wp6003.py
 # https://github.com/saso5/saso5.github.io/blob/master/WP6003-air-box/index.html
+# https://github.com/arendst/Tasmota/pull/15099
 class WP6003 : Driver
   var ble, cbp, buf
 
-  def init()
+  def init(mac)
     self.cbp = tasmota.gen_cb(/e,o,u-> self.cb(e,o,u))
     self.buf = bytes(-256)
     self.ble = BLE()
     self.ble.conn_cb(self.cbp,self.buf)
-    var _mac = "60030394342A" 
+    var _mac = mac
     self.ble.set_MAC(bytes(_mac),0)
     self.connect()
   end
@@ -23,12 +24,14 @@ class WP6003 : Driver
     if self.buf[0] == 0x12
       var data = self.buf[1..18]
       print('data: ', data)
-      # print('   time: 20', data[1], "/", data[2], "/", data[3], " ", data[4], ":", data[5])
-      print('  tempC: ', data.geti(6, -2)/10.0)
-      print('  tempF: ', data.get(6, -2)/10.0*1.8 + 32.0)
-      print('   tvoc: ', data.get(10, -2)/1000.0)
-      print('   hcho: ', data.get(12, -2)/1000.0)
-      print('    co2: ', data.get(16, -2))
+      if data[0] == 0x0A
+        # print('   time: 20', data[1], "/", data[2], "/", data[3], " ", data[4], ":", data[5])
+        print('  tempC: ', data.geti(6, -2)/10.0)
+        print('  tempF: ', data.get(6, -2)/10.0*1.8 + 32.0)
+        print('   tvoc: ', data.get(10, -2)/1000.0)
+        print('   hcho: ', data.get(12, -2)/1000.0)
+        print('    co2: ', data.get(16, -2))
+      end
     else
       print('got buf: ', self.buf[0..18])
     end
@@ -48,5 +51,5 @@ class WP6003 : Driver
 
 end
 
-wp6003 = WP6003()
+wp6003 = WP6003("60030394342A")
 tasmota.add_driver(wp6003)
