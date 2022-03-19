@@ -16,7 +16,7 @@ def blerry_handle(device, advert)
     if t_set_on
       t_set = t_set/100.0
     else
-      t = 'unavailable'
+      t_set = 'unavailable'
     end
     if t_on && t_set_on
       if t > t_set
