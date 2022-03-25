@@ -2,9 +2,19 @@
 # https://github.com/arendst/Tasmota/pull/14491
 import string
 var ble, cbp, buf
-def bytes2string(x)
+
+def byte2string(x)
   return x.tostring()[7..-3]
 end
+
+def bytes2string(x)
+  var s = ''
+  for b:0..size(x)-1
+    s = s + byte2string(x[b..b])
+  end
+  return s
+end
+
 def cb(svc, manu)
   var macstr = bytes2string(buf[0..5])
   if buf[6] > 0
