@@ -30,7 +30,7 @@ def cb(svc, manu)
     'p': bytes2string(buf[9..8+buf[8]]),
     'a': blerry.devices[macstr].alias
   }
-  print(old_format)
+  # print(old_format)
   blerry.handle_BLE_packet(old_format)
 end
 buf = bytes(-64)
