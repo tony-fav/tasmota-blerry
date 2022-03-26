@@ -172,6 +172,8 @@ var dir = introspect.members
 
 var blerry_handle
 var blerry_active
+var blerry_op_handle
+var blerry_op_cmd
 
 #######################################################################
 # BLE_AdvElement
@@ -343,6 +345,8 @@ class Blerry_Device
   var alias
   var handle
   var active
+  var op_handle
+  var op_cmd
   var attributes
   var sensors
   var sensors_to_discover
@@ -410,12 +414,16 @@ class Blerry_Device
       'GVH5184'         : 'blerry_driver_GVH5184.be',
     }
     var fn = model_drivers[self.config['model']]    
-    blerry_handle = def () print('BLY: Driver did not load properly:', self.config['model']) end
+    blerry_handle = def () return nil end
     blerry_active = false
+    blerry_op_handle = def () return nil end
+    blerry_op_cmd = def () return nil end
     blerry_helpers.ensure_driver_exists(fn)
     load(fn)
     self.handle = blerry_handle
     self.active = blerry_active
+    self.op_handle = blerry_op_handle
+    self.op_cmd = blerry_op_cmd
   end
 
   def add_attribute(name, value)
@@ -606,7 +614,9 @@ class Blerry_Device
       msg['exp_aft'] = 600  
       msg['name'] = self.alias + ' ' + self.sensors[s].name
       msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.sensors[s].name
-      msg['dev_cla'] = self.sensors[s].dev_cla
+      if self.sensors[s].dev_cla
+        msg['dev_cla'] = self.sensors[s].dev_cla
+      end
       msg['unit_of_meas'] = self.sensors[s].unit_of_meas
       msg['val_tpl'] = '{{ value_json.' + self.sensors[s].name + ' }}'
       msg = self.get_discovery_override(msg, s)
@@ -828,9 +838,20 @@ class Blerry
     end
   end
 
+  def handle_BLEOp_packet(value, trigger, msg)
+    try
+      var device = self.devices[value['MAC']]
+      var handle_f = device.op_handle
+      handle_f(device, value) # BLEOp is more complex, we do more in the driver
+    except .. as e, m
+      #
+    end
+  end
+
   def setup_packet_rule()
     # tasmota.add_rule(self.details_trigger, def (value, trigger, msg) self.handle_BLE_packet(value, trigger, msg) end)
     tasmota.add_rule(self.details_trigger, / value, trigger, msg -> self.handle_BLE_packet(value, trigger, msg)) # "I prefer a lambda for the closure...." - sfromis
+    tasmota.add_rule('BLEOperation', / value, trigger, msg -> self.handle_BLEOp_packet(value, trigger, msg))
   end
 
   def publish()
@@ -876,12 +897,16 @@ class Blerry_Driver : Driver
   var d_idx
   var next_send
   var last_sent
+  var next_poll
+  var d_idx_poll
 
   def init(blerry_inst)
     self.b = blerry_inst
     self.d_idx = 0
     self.next_send = tasmota.millis(10000)
     self.last_sent = ''
+    self.d_idx_poll = 0
+    self.next_poll = tasmota.millis(10000)
   end
 
   def every_second()
@@ -891,6 +916,24 @@ class Blerry_Driver : Driver
     if self.b.publish()
       return true
     end
+    if tasmota.millis() > self.next_poll
+      var d
+      var i = 0
+      self.d_idx_poll = (self.d_idx_poll + 1) % size(self.b.devices)
+      for de:self.b.devices
+        if i == self.d_idx_poll
+          d = de
+          break
+        end
+        i = i + 1
+      end
+      var c = d.op_cmd(d.mac)
+      if c
+        tasmota.cmd(c)
+        self.next_poll = tasmota.millis(30000)
+      end
+    end
+
   end
 
   def web_sensor()
