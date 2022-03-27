@@ -1,4 +1,4 @@
-# BLErry v0.2.x - A BLE Gateway inside Tasmota32 using Berry
+# BLErry v0.2.2-dev - A BLE Gateway inside Tasmota32 using Berry
 
 Here's an intro video by @digiblur to get an idea of the how and why! **HOWEVER, setup has changed, gotten simpler, since this video, see below.** Make sure to check out the discussions below.
 
@@ -219,28 +219,29 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 - Hop in the #blerry thread in the #tasmota channel of Digiblur's discord.
 - Add a rule which enables device restart on wifi disconnect such as `ON Wifi#Connected Do RuleTimer1 0 ENDON ON Wifi#Disconnected Do RuleTimer1 60 ENDON ON Rules#Timer=1 Do Restart 1 ENDON`
 
-## Supported Devices in BLErry v0.2.x
+## Supported Devices in BLErry v0.2.2-dev
 
 Please discuss any devices you would like supported [here](https://github.com/tony-fav/tasmota-blerry/discussions/22) as well as if you are working on supporting any device!
 
 ### Sensors
 
-| Driver Name         | Mac Example        | Description |
-| ------------------- | ------------------ | ----------- |
-| `"ATCpvvx"`         | `"A4C138XXXXXX"`   | Xiaomi sensors on ATC or pvvx firmware with "ATC1441" or "Custom" advertisement. |
-| `"GVH5074"`         | `"E33281XXXXXX"`   | Govee H5074. *Need H5051 packets to add support to this driver.* |
-| `"GVH5075"`         | `"A4C138XXXXXX"`   | Govee H5072, H5075, H5101, and H5102. |
-| `"GVH5182"`         | `"C33130XXXXXX/1"` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
-| `"GVH5183"`         | `"A4C138XXXXXX"`   | Govee H5183 single probe meat thermometer. |
-| `"GVH5184"`         | `"D03232XXXXXX/1"` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |
-| `"IBSTH2"`          | `"494208XXXXXX"`   | Inkbird IBSTH1 & IBSTH2 with and without humidity. |
-| `"ThermoPro_TP59"`  | `"487E48XXXXXX"`   | ThermoPro TP59. |
-| `"WoContact"`       | `"D4BD28XXXXXX/1"` | Switchbot contact sensor (also has motion, binary lux, and a button). |
-| `"WoPresence"`      | `"FC7CADXXXXXX/1"` | Switchbot motion sensor (also has binary lux). |
-| `"WoSensorTH"`      | `"D4E4A3XXXXXX/1"` | Switchbot temperature and humidity sensor (regular and plus). |
-| `"Xiaomi"`          | `"AABBCCDDEEFF"`   | ATC/PVVX sensor on Mi-Like Advertising and Xiaomi LYWSDCGQ. *Can be expanded to more sensors* |
-| `"dev"`             | `"AABBCCDDEEFF"`   | A driver for easy development that prints out received raw data. |
-
+| Driver Name          | Mac Example        | Description |
+| -------------------- | ------------------ | ----------- |
+| `"ATCpvvx"`          | `"A4C138XXXXXX"`   | Xiaomi sensors on ATC or pvvx firmware with "ATC1441" or "Custom" advertisement. |
+| `"GVH5074"`          | `"E33281XXXXXX"`   | Govee H5074. *Need H5051 packets to add support to this driver.* |
+| `"GVH5075"`          | `"A4C138XXXXXX"`   | Govee H5072, H5075, H5101, and H5102. |
+| `"GVH5182"`          | `"C33130XXXXXX/1"` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
+| `"GVH5183"`          | `"A4C138XXXXXX"`   | Govee H5183 single probe meat thermometer. |
+| `"GVH5184"`          | `"D03232XXXXXX/1"` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |
+| `"IBSTH2"`           | `"494208XXXXXX"`   | Inkbird IBSTH1 & IBSTH2 with and without humidity. |
+| `"ThermoPro_TP59"`   | `"487E48XXXXXX"`   | ThermoPro TP59. |
+| `"WoContact"`        | `"D4BD28XXXXXX/1"` | Switchbot contact sensor (also has motion, binary lux, and a button). |
+| `"WoPresence"`       | `"FC7CADXXXXXX/1"` | Switchbot motion sensor (also has binary lux). |
+| `"WoSensorTH"`       | `"D4E4A3XXXXXX/1"` | Switchbot temperature and humidity sensor (regular and plus). |
+| `"Xiaomi"`           | `"AABBCCDDEEFF"`   | ATC/PVVX sensor on Mi-Like Advertising, Xiaomi LYWSDCGQ, Mi-Flora. *Can be expanded to more sensors* |
+| `"dev"`              | `"AABBCCDDEEFF"`   | A driver for easy development that prints out received raw data. |
+| -- POLLED DEVICES -- |                    | Devices which require a BLEOp command to receive a Notification with data.|
+| `WP6003`             | `"600303AABBCC"`   | WP6003 Air Box. |
 ## Development Status
 
 I *have* the following devices that I am seeking to support which all require some control:
