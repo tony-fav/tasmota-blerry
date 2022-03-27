@@ -6,7 +6,7 @@
 # Provides MQTT Discovery and Reporting for BLE Devices
 #######################################################################
 
-var blerry_version = 'v0.2.1-dev'
+var blerry_version = 'v0.2.2-dev'
 
 # TODO
 #   Conform Govee Meat Thermometer Sensor Names across the 3 Devices
@@ -412,6 +412,7 @@ class Blerry_Device
       'GVH5182'         : 'blerry_driver_GVH5184.be',
       'GVH5183'         : 'blerry_driver_GVH5183.be',
       'GVH5184'         : 'blerry_driver_GVH5184.be',
+      'WP6003'          : 'blerry_driver_WP6003.be',
     }
     var fn = model_drivers[self.config['model']]    
     blerry_handle = def () return nil end
@@ -472,6 +473,12 @@ class Blerry_Device
     elif self.sensors[name].value != value
       self.sensors[name] = Blerry_Sensor(name, value, dev_cla, unit_of_meas)
       self.publish_available = true
+    end
+  end
+
+  def add_true_sensor(name, value, dev_cla, unit_of_meas)
+    if value
+      self.add_sensor(name, value, dev_cla, unit_of_meas)
     end
   end
 
@@ -930,7 +937,7 @@ class Blerry_Driver : Driver
       var c = d.op_cmd(d.mac)
       if c
         tasmota.cmd(c)
-        self.next_poll = tasmota.millis(30000)
+        self.next_poll = tasmota.millis(60000)
       end
     end
 
