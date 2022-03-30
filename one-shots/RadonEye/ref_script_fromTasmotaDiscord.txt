@@ -1,0 +1,154 @@
+>D 40
+;for script editor only - remove next line if you don't use it
+IP=xxx.xxx.xxx.xxx
+
+;RD200 mac here
+mac="xxxxxxxxxxxx/1"
+
+;unit initialisation
+unit=37
+u_tx="Bq/cbm"
+
+;actual radon value
+p:rd_a=0
+;avg day
+p:rd_d=0
+;avg month
+p:rd_m=0
+;counts
+rd_c=0
+;counts last 10 min period
+rd_c10=0
+;peak
+rd_p=0
+;uptime d, h, m
+up_d=0
+up_h=0
+up_m=0 
+;alarm set, threshold, interval
+al_s=""
+al_th=0
+al_i=0
+
+;helper
+ca="0"
+send="0"
+ms="0"
+msg="0"
+pstat="init"
+
+>S
+;execute 10 s before teleperiod 
+if upsecs+10%tper==0
+then
+=#ble_wr("AC")
+=#ble_wr("50")
+=#ble_wr("51")
+endif
+
+;if answer available -> decode
+if pstat=="DONEREAD"
+then
+pstat="init"
+=#decode
+endif
+
+>E
+msg=BLEOperation#read 
+;print BLEOperation#read %msg%
+pstat=BLEOperation#state
+;print BLEOperation#state %stat%
+eres=1
+
+>J
+; Json payload \> send on teleperiod 
+,"RD200":{ 
+"Activity":%rd_a%,
+"Activity_avg_day":%rd_d%,
+"Activity_avg_month":%rd_m%,
+"Counts_actual":%rd_c%,
+"Counts_last_10":%rd_c10%,
+"Peak":%rd_p%,
+"Alarm":"%al_s%",
+"Alarm THR":%al_th%,
+"Alarm interval":%al_i%
+}
+
+>W
+; show on webUI
+---------------------- 
+Activity {m} %0rd_a% %u_tx%
+Activity avg. day {m} %0rd_d% %u_tx%
+Activity avg. month {m} %0rd_m% %u_tx%
+Counts actual {m} %0rd_c%
+Counts last 10 min period {m} %0rd_c10%
+Peak {m} %0rd_p%
+Alarm {m} %0al_s%
+Alarm threshold {m} %0al_th% %u_tx%
+Alarm repeat {m} %0al_i% min
+Uptime {m} %0up_d% d  %0up_h% h  %0up_m% m
+
+;subs
+#ble_wr(send)
+;write
+->BLEOp M:%mac% s:00001523-1212-efde-1523-785feabcd123 c:00001524-1212-efde-1523-785feabcd123 w:%send%  go
+;read
+->BLEOp M:%mac% s:00001523-1212-efde-1523-785feabcd123 c:00001525-1212-efde-1523-785feabcd123 r go
+
+#decode
+;check if lenght of payload is o.k.
+if sl(msg)==40
+then
+ca=sb(msg 0 2)
+;print caseloop %ca%
+;find case
+switch ca
+case "50" 
+;print decode case "50" reading
+;from IEEE754 to decimal
+rd_a=hf(sb(msg 4 8))*unit
+rd_d=hf(sb(msg 12 8))*unit
+rd_m=hf(sb(msg 20 8))*unit
+;from hex to dec (rev. byte order)
+rd_c=hd(sb(msg 30 2)+sb(msg 28 2))
+rd_c10=hd(sb(msg 34 2)+sb(msg 32 2))
+case "51"
+;print decode case "51" reading
+;peak from IEEE754 to decimal
+rd_p=hf(sb(msg 24 8))*unit
+;read uptime
+up_m=hd(sb(msg 14 2)+sb(msg 12 2)+sb(msg 10 2)+sb(msg 8 2))
+;from uptime  min to d:h:m
+up_d=int(up_m/1440)
+up_h=int((up_m%1440)/60)
+up_m%=60
+case "AC"
+;print decode case "AC" reading
+;get unit
+ms=sb(msg 4 2)
+if ms=="00"
+then
+u_tx="pCi/L"
+unit =1
+else
+u_tx="Bq/cbm"
+unit =37
+endif
+;alarm on/off
+ms=sb(msg 6 2)
+if ms=="01"
+then
+al_s="on"
+else
+al_s="off"
+endif
+;alarm threshold
+al_th=hf(sb(msg 8 8))*unit
+;alarm interval in min 
+al_i=hd(sb(msg 16 2))*10
+;close case selection
+ends
+else
+print Something went wrong, payload has wrong length
+print Payload: %msg%
+endif

@@ -69,3 +69,5 @@ end
 airbox_driver = WP6003Driver('60030394342A', 300, 'tele/tasmota_blerry/WP6003_60030394342A/') # create instance of driver with 300s polling rate
 tasmota.add_driver(airbox_driver)
 print('added driver')
+
+# BLEOp1 m:60030394342A s:fff0 c:fff1 n:fff4 w:ab go
