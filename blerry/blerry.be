@@ -6,7 +6,7 @@
 # Provides MQTT Discovery and Reporting for BLE Devices
 #######################################################################
 
-var blerry_version = 'v0.2.2-dev'
+var blerry_version = 'v0.2.3-dev'
 
 # TODO
 #   Conform Govee Meat Thermometer Sensor Names across the 3 Devices

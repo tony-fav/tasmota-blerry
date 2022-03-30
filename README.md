@@ -1,4 +1,4 @@
-# BLErry v0.2.2-dev - A BLE Gateway inside Tasmota32 using Berry
+# BLErry v0.2.3-dev - A BLE Gateway inside Tasmota32 using Berry
 
 Here's an intro video by @digiblur to get an idea of the how and why! **HOWEVER, setup has changed, gotten simpler, since this video, see below.** Make sure to check out the discussions below.
 
@@ -219,7 +219,7 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 - Hop in the #blerry thread in the #tasmota channel of Digiblur's discord.
 - Add a rule which enables device restart on wifi disconnect such as `ON Wifi#Connected Do RuleTimer1 0 ENDON ON Wifi#Disconnected Do RuleTimer1 60 ENDON ON Rules#Timer=1 Do Restart 1 ENDON`
 
-## Supported Devices in BLErry v0.2.2-dev
+## Supported Devices in BLErry v0.2.3-dev
 
 Please discuss any devices you would like supported [here](https://github.com/tony-fav/tasmota-blerry/discussions/22) as well as if you are working on supporting any device!
 
