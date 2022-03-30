@@ -9,9 +9,10 @@
 var blerry_version = 'v0.2.3-dev'
 
 # TODO
-#   Conform Govee Meat Thermometer Sensor Names across the 3 Devices
 #   Resource Optimization
 #   Switchbot Bot Support
+#   Update Actions to support mi32 BLE driver
+#   Detect mi32 vs ble32 driver earlier (test disjoint commands)
 
 #######################################################################
 # Module Imports
