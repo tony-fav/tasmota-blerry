@@ -21,6 +21,12 @@ def blerry_op_handle(device, value)
 end
 
 def blerry_op_cmd(mac)
-  return string.format('BLEOp1 m:%s s:fff0 c:fff1 n:fff4 w:ab go', mac)
+  if blerry.mi32ble
+    return string.format("br BLEOpWN('%s', 'fff0', 'fff1', 'ab','fff4').go()", mac)
+  else
+    return string.format('BLEOp1 m:%s s:fff0 c:fff1 n:fff4 w:ab go', mac)
+  end
 end
 print('BLY: Driver: WP6003 Loaded')
+
+# br BLEOpWN('60030394342A', 'fff0', 'fff1', 'ab','fff4').go()

@@ -3,6 +3,8 @@
 import string
 var ble, cbp, buf
 
+blerry.mi32ble = true
+
 def byte2string(x)
   return x.tostring()[7..-3]
 end
@@ -63,3 +65,87 @@ def newBLE_active()
 end
 
 tasmota.set_timer(5000, newBLE_active)
+
+# Create a BLEOp1 substitute
+class BLEOpWN
+  var macstr
+  var mac
+  var mactype
+  var svc
+  var write_chr
+  var write_val
+  var notify_chr
+  var cbp
+  var buf
+  var ble
+
+
+  def init(macstr, svc, write_chr, write_val, notify_chr)
+    # inputs
+    self.macstr = macstr
+    if size(macstr) == 14
+      self.mac = bytes(macstr[0..11])
+      self.mactype = int(macstr[13])
+    else
+      self.mac = bytes(macstr[0..11])
+      self.mactype = 0
+    end
+    self.svc = svc
+    self.write_chr = write_chr
+    self.write_val = bytes(write_val)
+    self.notify_chr = notify_chr
+
+    # setup
+    self.cbp = tasmota.gen_cb(/e,o,u->self.cb(e,o,u))
+    self.buf = bytes(-64)
+    self.ble = BLE()
+    self.ble.conn_cb(self.cbp, self.buf)
+    self.ble.set_MAC(self.mac, self.mactype)
+  end
+
+  def go()
+    self.ble.set_svc(self.svc)
+    self.ble.set_chr(self.notify_chr)
+    self.ble.run(3)
+  end
+
+  def write()
+    self.ble.set_svc(self.svc)
+    self.ble.set_chr(self.write_chr)
+    var N = size(self.write_val)
+    self.buf[0] = N
+    for n:1..N
+      self.buf[n] = self.write_val[n-1]
+    end
+    self.ble.run(2, 1)
+  end
+
+  def cb(err, op, uuid)
+    if err == 0
+      if op == 3
+        self.write()
+      elif op == 103
+        var N = self.buf[0]
+        var rbuf = self.buf[1..N]
+        self.ble.run(5)
+        var value = {
+          'MAC': self.macstr,
+          'state': 'DONENOTIFIED',
+          'notify': bytes2string(rbuf)
+        }
+        print(value)
+        blerry.handle_BLEOp_packet(value)
+      end
+    else
+      if op == 5 && err == 2
+        # disconnected fine
+      else
+        print("BLY: BlerryPoll Error", err, op, uuid, 'raw buf:', self.buf)
+        self.ble.run(5)
+      end
+    end
+  end
+end
+
+# BLEOpWN('60030394342A', 'fff0', 'fff1', 'ab','fff4').go()
+# {"BLEOperation":{"opid":"2","stat":"7","state":"DONENOTIFIED","MAC":"60030394342A","svc":"0xfff0","char":"0xfff1","notifychar":"0xfff4","write":"AB","notify":"0A160316131700D7080000B9001C01000263"}}

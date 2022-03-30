@@ -693,6 +693,7 @@ class Blerry
   var device_cmnd_topic
   var device_tele_topic
 
+  var mi32ble
 
   def init()
     self.get_tasmota_settings()
@@ -701,6 +702,7 @@ class Blerry
     self.setup_device_config()
     self.setup_devices()
     self.setup_packet_rule()
+    self.mi32ble = false
   end
 
   def get_tasmota_settings()
