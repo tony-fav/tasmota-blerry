@@ -133,7 +133,6 @@ class BLEOpWN
           'state': 'DONENOTIFIED',
           'notify': bytes2string(rbuf)
         }
-        print(value)
         blerry.handle_BLEOp_packet(value)
       end
     else
