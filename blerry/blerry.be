@@ -477,8 +477,8 @@ class Blerry_Device
     end
   end
 
-  def add_true_sensor(name, value, dev_cla, unit_of_meas)
-    if value
+  def add_sensor_in_range(name, value, dev_cla, unit_of_meas, low, high)
+    if ((low == nil) || (value > low)) && ((high == nil) || (value < high))
       self.add_sensor(name, value, dev_cla, unit_of_meas)
     end
   end

@@ -79,8 +79,13 @@ class BLEOpWN
   var buf
   var ble
 
+  def init()
+    self.cbp = tasmota.gen_cb(/e,o,u->self.cb(e,o,u))
+    self.buf = bytes(-64)
+    self.ble = BLE()
+  end
 
-  def init(macstr, svc, write_chr, write_val, notify_chr)
+  def set(macstr, svc, write_chr, write_val, notify_chr)
     # inputs
     self.macstr = macstr
     if size(macstr) == 14
@@ -96,11 +101,13 @@ class BLEOpWN
     self.notify_chr = notify_chr
 
     # setup
-    self.cbp = tasmota.gen_cb(/e,o,u->self.cb(e,o,u))
-    self.buf = bytes(-64)
-    self.ble = BLE()
     self.ble.conn_cb(self.cbp, self.buf)
     self.ble.set_MAC(self.mac, self.mactype)
+  end
+
+  def setAndGo(macstr, svc, write_chr, write_val, notify_chr)
+    self.set(macstr, svc, write_chr, write_val, notify_chr)
+    self.go()
   end
 
   def go()
@@ -145,6 +152,8 @@ class BLEOpWN
     end
   end
 end
+
+var blerry_BLEOpWN = BLEOpWN()
 
 # BLEOpWN('60030394342A', 'fff0', 'fff1', 'ab','fff4').go()
 # {"BLEOperation":{"opid":"2","stat":"7","state":"DONENOTIFIED","MAC":"60030394342A","svc":"0xfff0","char":"0xfff1","notifychar":"0xfff4","write":"AB","notify":"0A160316131700D7080000B9001C01000263"}}
