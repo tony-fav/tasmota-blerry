@@ -145,6 +145,8 @@ class BLEOpWN
     else
       if op == 5 && err == 2
         # disconnected fine
+      elif op == 5 && err == 1
+        # some connection error
       else
         print("BLY: BlerryPoll Error", err, op, uuid, 'raw buf:', self.buf)
         self.ble.run(5)
