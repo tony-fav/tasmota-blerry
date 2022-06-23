@@ -169,7 +169,8 @@ devices:
       Humidity: 0
       DewPoint: 1
   E33281BBBBBB:
-    alias: another_sensor
+    name: Living Room Sensor # friendly name shown in Home Assistant etc
+    alias: blerry_BBBBBB # used for BLE alias and mqtt topic
     model: GVH5074
     via_pubs: true
     publish_attributes: true
