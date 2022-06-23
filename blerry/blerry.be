@@ -377,6 +377,7 @@ class Blerry_Device
 
     # static attributes
     self.add_attribute('MAC', self.mac)
+    self.add_attribute('Name', self.name)
     self.add_attribute('Alias', self.alias)
     self.add_attribute('Model', self.config['model'])
 
