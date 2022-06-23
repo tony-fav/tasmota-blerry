@@ -101,7 +101,7 @@ class blerry_helpers
     var config = blerry_helpers.read_config()
     tasmota.resp_cmnd(json.dump({string.toupper(payload): config['devices'][string.toupper(payload)]}))
   end
-  
+
   static def cmd_del_device(cmd, idx, payload, payload_json)
     var config = blerry_helpers.read_config()
     var new_dev = json.load(payload)
@@ -340,6 +340,7 @@ end
 # Blerry_Device
 #######################################################################
 class Blerry_Device
+  var name
   var mac
   var config
   var b
@@ -360,6 +361,7 @@ class Blerry_Device
   var next_forced_publish
 
   def init(mac, config, blerry_inst)
+    self.name = config.find('name', config['alias'])
     self.mac = mac
     self.config = config
     self.b = blerry_inst
@@ -375,6 +377,7 @@ class Blerry_Device
 
     # static attributes
     self.add_attribute('MAC', self.mac)
+    self.add_attribute('Name', self.name)
     self.add_attribute('Alias', self.alias)
     self.add_attribute('Model', self.config['model'])
 
@@ -389,7 +392,7 @@ class Blerry_Device
   end
 
   def load_driver()
-    var model_drivers = 
+    var model_drivers =
     {
       'dev'             : 'blerry_driver_dev.be',
       'ATCpvvx'         : 'blerry_driver_ATCpvvx.be',
@@ -415,7 +418,7 @@ class Blerry_Device
       'GVH5184'         : 'blerry_driver_GVH5184.be',
       'WP6003'          : 'blerry_driver_WP6003.be',
     }
-    var fn = model_drivers[self.config['model']]    
+    var fn = model_drivers[self.config['model']]
     blerry_handle = def () return nil end
     blerry_active = false
     blerry_op_handle = def () return nil end
@@ -591,7 +594,7 @@ class Blerry_Device
     # Device Association Part
     msg['dev'] = {}
     msg['dev']['ids'] = [('blerry_' + self.alias)]
-    msg['dev']['name'] = self.alias
+    msg['dev']['name'] = self.name
     msg['dev']['mf'] = 'BLErry ' + blerry_version
     msg['dev']['mdl'] = self.config['model']
     msg['dev']['via_device'] = self.b.hostname
@@ -619,8 +622,8 @@ class Blerry_Device
     if size(self.sensors_to_discover)
       var s = self.sensors_to_discover[0]
       var msg = self.get_discovery_packet_base()
-      msg['exp_aft'] = 600  
-      msg['name'] = self.alias + ' ' + self.sensors[s].name
+      msg['exp_aft'] = 600
+      msg['name'] = self.name + ' ' + self.sensors[s].name
       msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.sensors[s].name
       if self.sensors[s].dev_cla
         msg['dev_cla'] = self.sensors[s].dev_cla
@@ -641,7 +644,7 @@ class Blerry_Device
       var s = self.binary_sensors_to_discover[0]
       var msg = self.get_discovery_packet_base()
       msg['exp_aft'] = 600
-      msg['name'] = self.alias + ' ' + self.binary_sensors[s].name
+      msg['name'] = self.name + ' ' + self.binary_sensors[s].name
       msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.binary_sensors[s].name
       if self.binary_sensors[s].dev_cla != 'none'
         msg['dev_cla'] = self.binary_sensors[s].dev_cla
@@ -654,13 +657,13 @@ class Blerry_Device
     end
     return false
   end
-  
+
   def publish_action_discovery()
     var topic_fmt = 'homeassistant/button/blerry_' + self.alias + '/%s/config'
     if size(self.actions_to_discover)
       var a = self.actions_to_discover[0]
       var msg = self.get_discovery_packet_base()
-      msg['name'] = self.alias + ' ' + self.actions[a].name
+      msg['name'] = self.name + ' ' + self.actions[a].name
       msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.actions[a].name
       msg['cmd_t'] = self.b.device_cmnd_topic + '/BlerryAction'
       msg['payload_press'] = json.dump({self.mac: self.actions[a].name})
@@ -765,7 +768,7 @@ class Blerry
   end
 
   def load_default_config()
-    self.default_config = 
+    self.default_config =
     {
       'base_topic': 'tele/tasmota_blerry',
       'discovery': true,
@@ -775,7 +778,7 @@ class Blerry
       'sensor_retain': false,
       'publish_attributes': false,
       'ignored': false,
-      'precision': 
+      'precision':
       {
         'Temperature': 2,
         'DewPoint': 2,
@@ -818,7 +821,7 @@ class Blerry
     self.devices = {}
     for m:self.device_config.keys()
       var device = Blerry_Device(m, self.device_config[m], self)
-      
+
       # host based attributes here
       self.devices[m] = device
       active = active || device.active
