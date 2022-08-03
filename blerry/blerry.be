@@ -148,7 +148,7 @@ class blerry_helpers
   end
 
   static def ensure_driver_exists(driver_fname)
-    if !path.exists(driver_fname)
+    if !(path.exists(driver_fname) || path.exists(driver_fname + 'c'))
       if blerry_helpers.download_driver(driver_fname)
         print('BLY: Downloaded driver successfully:', driver_fname)
         return true
