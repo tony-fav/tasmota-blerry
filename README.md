@@ -60,7 +60,7 @@ The list of commands is below
 
 ```
 BlerrySetDevice <JSON of a single device> 
-BlerryGetDevice 
+BlerryGetDevice <mac of a single device>
 BlerryDelDevice <mac of a single device>
 BlerrySetConfig <Complete JSON>
 BlerryGetConfig 
@@ -94,12 +94,21 @@ This works similar to the rule but with a 10s. This delay seems to be required f
 ### Manual Setup
 
 Next, to use: 
-- Upload `blerry.be` and each `blerry_driver_xxxx.be` driver file you may need to the file system of the ESP32. (`http://your.tas.device.ip/ufsd?`)
-- Edit `blerry_config.json` as needed for your device configuration, HA discovery choices, etc... (make sure you delete the example configurations for devices you are not using) and upload to the file system of the ESP32.
-- Create and enable (`Rule1 1`) the following Tasmota Rule and Restart Tasmota.
+- Upload `blerry.be` to the file system of the ESP32. (`http://your.tas.device.ip/ufsd?`)
+- Create the following Tasmota Rule:
 ```
 Rule1 ON System#Boot DO br load('blerry.be') ENDON
 ```
+- Enable the rule:
+```
+Rule1 1
+```
+
+### Final Setup (required for both automated and manual)
+- Edit `blerry_config.json` as needed for your device configuration, HA discovery choices, etc... (make sure you delete the example configurations for devices you are not using) and upload to the file system of the ESP32 (`http://your.tas.device.ip/ufsd?`).
+- If BLErry can't find a driver file (either source or compiled) on the file system and has access to the Internet, it will attempt to automatically download the needed drivers based on your [configuration file](#configuration-json). If your device does not have access to the Internet, you will need to upload each `blerry_driver_xxxx.be` driver file you may need to the file system of the ESP32.
+- Restart Tasmota for BLErry to start working.
+- Cleanup (optional) - After your device is configured and working properly you can free wasted space in the file system by deleting `blerry.be` and all `blerry_driver_xxxx.be` files. Make sure not to touch any of the `*.bec` files as those are necessary for the proper operation of BLErry.
 
 If you use HA discovery, devices should appear under MQTT Devices NOT the Tasmota integration.
 
