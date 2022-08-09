@@ -786,6 +786,12 @@ class Blerry
     var val
     blerry_helpers.download_config("blerry_configurl.txt")
     if path.exists("blerry_config.json")
+
+    else
+      blerry_helpers.write_config({'devices':{}})
+    end
+
+    if path.exists("blerry_config.json")
       try
         f = open("blerry_config.json", "r")
         val = json.load(f.read())
