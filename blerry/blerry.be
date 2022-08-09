@@ -70,7 +70,7 @@ class blerry_helpers
   static def read_config()
     var config
     #If a URL was set, try to download, and save before opening.
-    download_config()
+    blerry_helpers.download_config()
     if path.exists("blerry_config.json")
       var f = open("blerry_config.json", "r")
       config = json.load(f.read())
