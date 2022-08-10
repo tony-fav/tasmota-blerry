@@ -22,6 +22,7 @@ import math
 import json
 import path
 import string
+import persist
 
 if path.exists('blerry_setup.be')
   path.remove('blerry_setup.be')
@@ -89,9 +90,8 @@ class blerry_helpers
   end
 
   static def write_url(url)
-    var f = open("blerry_configurl.txt", "w")
-    f.write(url)
-    f.close()
+    persist.blerry_configurl = url
+    persist.save()
   end
 
   static def cmd_set_device(cmd, idx, payload, payload_json)
@@ -137,6 +137,7 @@ class blerry_helpers
     if string.find(url,'http',0,4)
       print('BLY: URL does not start with http(s)', url)
       return false
+    end
     blerry_helpers.write_url(url)
     tasmota.resp_cmnd_done()
   end
@@ -165,9 +166,8 @@ class blerry_helpers
   static def download_config()
     var url
 
-    if path.exists("blerry_configurl.txt")
-      var u = open("blerry_configurl.txt", "r")
-      url = u.read()
+    if persist.has("blerry_configurl")
+      url = persist.blerry_configurl
     else
       return
     end
