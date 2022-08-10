@@ -782,9 +782,7 @@ class Blerry
     var f
     var val
     blerry_helpers.download_config()
-    if path.exists("blerry_config.json")
-
-    else
+    if !(path.exists("blerry_config.json"))
       blerry_helpers.write_config({'devices':{}})
     end
 
