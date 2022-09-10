@@ -395,6 +395,7 @@ class Blerry_Device
     var model_drivers =
     {
       'dev'             : 'blerry_driver_dev.be',
+      'BTHome'          : 'blerry_driver_BTHome.be',
       'ATCpvvx'         : 'blerry_driver_ATCpvvx.be',
       'ATC'             : 'blerry_driver_ATCpvvx.be',
       'pvvx'            : 'blerry_driver_ATCpvvx.be',
@@ -940,9 +941,13 @@ class Blerry_Driver : Driver
         end
         i = i + 1
       end
-      var c = d.op_cmd(d.mac)
-      if c
-        tasmota.cmd(c)
+      if d
+        var c = d.op_cmd(d.mac)
+        if c
+          tasmota.cmd(c)
+          self.next_poll = tasmota.millis(60000)
+        end
+      else
         self.next_poll = tasmota.millis(60000)
       end
     end
