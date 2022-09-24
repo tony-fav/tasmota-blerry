@@ -406,6 +406,7 @@ class Blerry_Device
       'GVH5102'         : 'blerry_driver_GVH5075.be',
       'IBSTH1'          : 'blerry_driver_IBSTH2.be',
       'IBSTH2'          : 'blerry_driver_IBSTH2.be',
+      'MiScale2'        : 'blerry_driver_MiScale2.be',
       'Xiaomi'          : 'blerry_driver_Xiaomi.be',
       'ATCmi'           : 'blerry_driver_Xiaomi.be',
       'Xiaomi_LYWSDCGQ' : 'blerry_driver_Xiaomi.be',
