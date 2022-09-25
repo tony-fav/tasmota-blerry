@@ -4,7 +4,7 @@ def blerry_handle(device, advert)
     var data = elements[0].data[2..]
     var is_stable = (data[1] & (1 << 5)) != 0
     var is_removed  = (data[1] & (1 << 7)) != 0
-    if !is_stable && is_removed
+    if !is_stable || is_removed
       return false
     end
 
