@@ -264,7 +264,10 @@ Please discuss any devices you would like supported [here](https://github.com/to
 | `"WoContact"`        | `"D4BD28XXXXXX/1"` | Switchbot contact sensor (also has motion, binary lux, and a button). |
 | `"WoPresence"`       | `"FC7CADXXXXXX/1"` | Switchbot motion sensor (also has binary lux). |
 | `"WoSensorTH"`       | `"D4E4A3XXXXXX/1"` | Switchbot temperature and humidity sensor (regular and plus). |
+| `"BTHome"`           | `"AABBCCDDEEFF"`   | BTHome format. Currently supports thermometer like readings *Can be expanded to more sensors* |
 | `"Xiaomi"`           | `"AABBCCDDEEFF"`   | ATC/PVVX sensor on Mi-Like Advertising, Xiaomi LYWSDCGQ, Mi-Flora. *Can be expanded to more sensors* |
+| `"MiScale2"`         | `"AABBCCDDEEFF"`   | Xiaomi Mi Scale 2 *See configuration section for configuration recommendation* |
+| `"EufyC1"`           | `"AABBCCDDEEFF"`   | Anker eufy C1 Scale *See configuration section for configuration recommendation* |
 | `"dev"`              | `"AABBCCDDEEFF"`   | A driver for easy development that prints out received raw data. |
 | -- POLLED DEVICES -- |                    | Devices which require a BLEOp command to receive a Notification with data.|
 | `WP6003`             | `"600303AABBCC"`   | WP6003 Air Box. |
