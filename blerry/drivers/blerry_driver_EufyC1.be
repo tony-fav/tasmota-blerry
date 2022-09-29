@@ -5,7 +5,7 @@ def blerry_handle(device, advert)
     if (data[0] == 0 && data[1] == 0)
       return false
     end
-    var weight = data.get(2, 2)/100
+    var weight = data.get(2, 2)/100.0
     device.add_sensor_in_range('Weight', weight, nil, 'kg', 0.0, nil)
     var impedance = data.get(0, 2)/10
     device.add_sensor_in_range('Impedance', impedance, nil, 'ohm', 0., 3000.)
