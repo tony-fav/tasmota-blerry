@@ -215,6 +215,22 @@ override:
     Battery: -1
 ```
 
+For devices like scales that timeout and turn off when not in use or thermometers that have low digit precision and might not update often, the discovery of those specific sensors should be overriden to have a longer `exp_aft` time (default is 10 minutes = 600 seconds). The example below uses the `discovery_override` option to change the expire after time to 36 hours and change the state class to a measurement.
+
+```yaml
+devices:
+  5CCAD3XXXXXX:
+    model: MyScale
+    alias: MiScale2
+    discovery_override:
+      Weight:
+        stat_cla: measurement
+        exp_aft: 129600
+      Impedance:
+        stat_cla: measurement
+        exp_aft: 129600
+```
+
 Final reminder, you must convert this yaml to json and save a `blerry_config.json` to use it.
 
 ## Troubleshooting
@@ -248,7 +264,10 @@ Please discuss any devices you would like supported [here](https://github.com/to
 | `"WoContact"`        | `"D4BD28XXXXXX/1"` | Switchbot contact sensor (also has motion, binary lux, and a button). |
 | `"WoPresence"`       | `"FC7CADXXXXXX/1"` | Switchbot motion sensor (also has binary lux). |
 | `"WoSensorTH"`       | `"D4E4A3XXXXXX/1"` | Switchbot temperature and humidity sensor (regular and plus). |
+| `"BTHome"`           | `"AABBCCDDEEFF"`   | BTHome format. Currently supports thermometer like readings *Can be expanded to more sensors* |
 | `"Xiaomi"`           | `"AABBCCDDEEFF"`   | ATC/PVVX sensor on Mi-Like Advertising, Xiaomi LYWSDCGQ, Mi-Flora. *Can be expanded to more sensors* |
+| `"MiScale2"`         | `"AABBCCDDEEFF"`   | Xiaomi Mi Scale 2 *See configuration section for configuration recommendation* |
+| `"EufyC1"`           | `"AABBCCDDEEFF"`   | Anker eufy C1 Scale *See configuration section for configuration recommendation* |
 | `"dev"`              | `"AABBCCDDEEFF"`   | A driver for easy development that prints out received raw data. |
 | -- POLLED DEVICES -- |                    | Devices which require a BLEOp command to receive a Notification with data.|
 | `WP6003`             | `"600303AABBCC"`   | WP6003 Air Box. |
