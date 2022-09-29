@@ -215,6 +215,22 @@ override:
     Battery: -1
 ```
 
+For devices like scales that timeout and turn off when not in use or thermometers that have low digit precision and might not update often, the discovery of those specific sensors should be overriden to have a longer `exp_aft` time (default is 10 minutes = 600 seconds). The example below uses the `discovery_override` option to change the expire after time to 36 hours and change the state class to a measurement.
+
+```yaml
+devices:
+  5CCAD3XXXXXX:
+    model: MyScale
+    alias: MiScale2
+    discovery_override:
+      Weight:
+        stat_cla: measurement
+        exp_aft: 129600
+      Impedance:
+        stat_cla: measurement
+        exp_aft: 129600
+```
+
 Final reminder, you must convert this yaml to json and save a `blerry_config.json` to use it.
 
 ## Troubleshooting
