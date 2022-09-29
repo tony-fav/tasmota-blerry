@@ -407,6 +407,7 @@ class Blerry_Device
       'IBSTH1'          : 'blerry_driver_IBSTH2.be',
       'IBSTH2'          : 'blerry_driver_IBSTH2.be',
       'MiScale2'        : 'blerry_driver_MiScale2.be',
+      'EufyC1'          : 'blerry_driver_EufyC1.be',
       'Xiaomi'          : 'blerry_driver_Xiaomi.be',
       'ATCmi'           : 'blerry_driver_Xiaomi.be',
       'Xiaomi_LYWSDCGQ' : 'blerry_driver_Xiaomi.be',
