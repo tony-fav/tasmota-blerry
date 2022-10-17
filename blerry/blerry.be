@@ -419,6 +419,7 @@ class Blerry_Device
       'GVH5182'         : 'blerry_driver_GVH5184.be',
       'GVH5183'         : 'blerry_driver_GVH5183.be',
       'GVH5184'         : 'blerry_driver_GVH5184.be',
+      'iBBQ6'           : 'blerry_driver_iBBQ6.be',
       'WP6003'          : 'blerry_driver_WP6003.be',
     }
     var fn = model_drivers[self.config['model']]
