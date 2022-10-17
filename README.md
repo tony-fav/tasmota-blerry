@@ -259,6 +259,7 @@ Please discuss any devices you would like supported [here](https://github.com/to
 | `"GVH5182"`          | `"C33130XXXXXX/1"` | Govee H5182 two probe meat thermometer with display. Thanks carlthehaitian! |
 | `"GVH5183"`          | `"A4C138XXXXXX"`   | Govee H5183 single probe meat thermometer. |
 | `"GVH5184"`          | `"D03232XXXXXX/1"` | Govee H5184 four probe meat thermometer with display. Thanks ElksInNC! |
+| `"iBBQ6"`            | `"F83002XXXXXX"`   | Inkbird IBT-6XS and potentially other 6 probe iBBQ devices |
 | `"IBSTH2"`           | `"494208XXXXXX"`   | Inkbird IBSTH1 & IBSTH2 with and without humidity. |
 | `"ThermoPro_TP59"`   | `"487E48XXXXXX"`   | ThermoPro TP59. |
 | `"WoContact"`        | `"D4BD28XXXXXX/1"` | Switchbot contact sensor (also has motion, binary lux, and a button). |
