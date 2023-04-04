@@ -42,7 +42,7 @@ def start_blerry_setup()
 end
 start_blerry_setup()
 ```
-This script will download a larger setup script and run it which downloads `blerry.be`, sets up a blank `blerry_config.json` if one does not already exist, sets up and enables a Rule to launch BLErry on Tasmota boot if one does not already exist, and restarts the ESP. 
+This script will download a larger setup script and run it which downloads `blerry.be`, sets up a blank `blerry_config.json` if one does not already exist, sets up and enables a Rule to launch BLErry on Tasmota boot if one does not already exist, and restarts the ESP.
 
 **If the script did not seem to work the first time. Run it again! There is some instability in downloading files to the ESP.**
 
@@ -61,11 +61,11 @@ There are several available Tasmota commands which can be used to setup devices 
 The list of commands is below
 
 ```
-BlerrySetDevice <JSON of a single device> 
+BlerrySetDevice <JSON of a single device>
 BlerryGetDevice <mac of a single device>
 BlerryDelDevice <mac of a single device>
 BlerrySetConfig <Complete JSON>
-BlerryGetConfig 
+BlerryGetConfig
 BlerryDelConfig
 ```
 
@@ -95,7 +95,7 @@ This works similar to the rule but with a 10s. This delay seems to be required f
 
 ### Manual Setup
 
-Next, to use: 
+Next, to use:
 - Upload `blerry.be` to the file system of the ESP32. (`http://your.tas.device.ip/ufsd?`)
 - Create the following Tasmota Rule:
 ```
@@ -247,6 +247,9 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 - Hop in the #blerry thread in the #tasmota channel of Digiblur's discord.
 - Add a rule which enables device restart on wifi disconnect such as `ON Wifi#Connected Do RuleTimer1 0 ENDON ON Wifi#Disconnected Do RuleTimer1 60 ENDON ON Rules#Timer=1 Do Restart 1 ENDON`
 - Ensure blerry.be is not size 0 on the filesystem. If it is, please follow the manual setup.
+- ESP32-C3 based devices like the [SwitchBot Plug Mini](https://us.switch-bot.com/collections/all/products/switchbot-plug-mini) and Bulb
+  - Tasmota 11.x and [12.0.2.2 dev](https://github.com/tasmota/install/raw/0533fd275fad9f4f3bf8350a6afdb9c6176d6879/firmware/unofficial/tasmota32c3-bluetooth.bin) seem to be the most stable right now. Newer versions seem to cause crashing.
+  - Try SO57 0; This seems to improve reliability some.
 
 ## Supported Devices in BLErry v0.2.3-dev
 
