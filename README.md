@@ -52,6 +52,8 @@ Alternately, this setup script can be executed as a Tasmota command:
 br import path; def start_blerry_setup(); var cl = webclient(); var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/blerry_setup.be'; cl.begin(url); var r = cl.GET(); if r != 200; print('error getting blerry_setup.be'); return false; end; var s = cl.get_string(); cl.close(); var f = open('blerry_setup.be', 'w'); f.write(s); f.close(); load('blerry_setup.be'); end; start_blerry_setup()
 ```
 
+***IF AFTER INSTALLATION, BLERRY DOES NOT APPEAR TO BE WORKING, AND TASMOTA COMMANDS ARE UNKNOWN, PLEASE FOLLOW THE MANUAL SETUP GUIDE BELOW***. The automatic installation can fail leaving a blerry.be of size 0 on the filesystem.
+
 ### Tasmota Commands
 
 There are several available Tasmota commands which can be used to setup devices or get information about the current setup.
@@ -244,6 +246,7 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 - Try loading BLErry just in the console with `br load('blerry.be')` and watch the logs for errors.
 - Hop in the #blerry thread in the #tasmota channel of Digiblur's discord.
 - Add a rule which enables device restart on wifi disconnect such as `ON Wifi#Connected Do RuleTimer1 0 ENDON ON Wifi#Disconnected Do RuleTimer1 60 ENDON ON Rules#Timer=1 Do Restart 1 ENDON`
+- Ensure blerry.be is not size 0 on the filesystem. If it is, please follow the manual setup.
 
 ## Supported Devices in BLErry v0.2.3-dev
 
