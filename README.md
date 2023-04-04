@@ -67,6 +67,7 @@ BlerryDelDevice <mac of a single device>
 BlerrySetConfig <Complete JSON>
 BlerryGetConfig
 BlerryDelConfig
+BlerryConfigURL <URL of blerry_config.json>
 ```
 
 For example,
@@ -79,11 +80,16 @@ would add this device (if it did not exist) to the configuration or edit the dev
 
 would delete the device configuration with mac address `E33281034C99` leaving the remaining configuration intact.
 
+`BlerryConfigURL https://raw.githubusercontent.com/username/blerry/main/blerry_config.json`
+
+would rewrite the entire configuration file to be the file from the provided URL.  This will auto update at every boot.
+
 `BlerrySetConfig {"devices":{"E33281034C99":{"alias":"dev_GVH5074","model":"GVH5074"}}}`
 
 would rewrite the entire configuration file to be the provided JSON.
 
 These commands work like regular Tasmota commands, available through the console, serial, MQTT, HTTP request, etc.
+
 
 ### Alternate to System#Boot Rule
 

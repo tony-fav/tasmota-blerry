@@ -22,6 +22,7 @@ import math
 import json
 import path
 import string
+import persist
 
 if path.exists('blerry_setup.be')
   path.remove('blerry_setup.be')
@@ -70,6 +71,7 @@ class blerry_helpers
 
   static def read_config()
     var config
+    blerry_helpers.download_config()
     if path.exists("blerry_config.json")
       var f = open("blerry_config.json", "r")
       config = json.load(f.read())
@@ -85,6 +87,11 @@ class blerry_helpers
     var f = open("blerry_config.json", "w")
     f.write(json.dump(config))
     f.close()
+  end
+
+  static def write_url(url)
+    persist.blerry_configurl = url
+    persist.save()
   end
 
   static def cmd_set_device(cmd, idx, payload, payload_json)
@@ -126,6 +133,15 @@ class blerry_helpers
     tasmota.resp_cmnd_done()
   end
 
+  static def cmd_url_config(cmd, idx, url)
+    if string.find(url,'http',0,4)
+      print('BLY: URL does not start with http(s)', url)
+      return false
+    end
+    blerry_helpers.write_url(url)
+    tasmota.resp_cmnd_done()
+  end
+
   static def download_file(file_name, url)
     var cl = webclient()
     cl.begin(url)
@@ -145,6 +161,39 @@ class blerry_helpers
   static def download_driver(driver_fname)
     var url = 'https://raw.githubusercontent.com/tony-fav/tasmota-blerry/dev/blerry/drivers/' + driver_fname
     return blerry_helpers.download_file(driver_fname, url)
+  end
+
+  static def download_config()
+    var url
+
+    if persist.has("blerry_configurl")
+      url = persist.blerry_configurl
+    else
+      return
+    end
+
+    var cl = webclient()
+    cl.begin(url)
+    var r = cl.GET()
+    if r != 200
+      print('BLY: Could not download config from:', url)
+      return false
+    end
+    var s = cl.get_string()
+    cl.close()
+    
+    var val = json.load(s)
+
+    if isinstance(val, map)
+      var f = open("blerry_config.json", 'w')
+      f.write(s)
+      f.close()
+      return true
+    else
+      print('BLY: Data from:', url, 'is not valid json:', s)
+      return false
+    end
+    return true
   end
 
   static def ensure_driver_exists(driver_fname)
@@ -737,6 +786,11 @@ class Blerry
   def load_user_config()  # based on persist module
     var f
     var val
+    blerry_helpers.download_config()
+    if !(path.exists("blerry_config.json"))
+      blerry_helpers.write_config({'devices':{}})
+    end
+
     if path.exists("blerry_config.json")
       try
         f = open("blerry_config.json", "r")
@@ -1019,6 +1073,7 @@ tasmota.add_cmd("BlerryDelDevice", blerry_helpers.cmd_del_device)
 tasmota.add_cmd("BlerryGetConfig", blerry_helpers.cmd_get_config)
 tasmota.add_cmd("BlerrySetConfig", blerry_helpers.cmd_set_config)
 tasmota.add_cmd("BlerryDelConfig", blerry_helpers.cmd_del_config)
+tasmota.add_cmd("BlerryConfigURL", blerry_helpers.cmd_url_config)
 tasmota.add_cmd("BlerryAction", / cmd, idx, payload, payload_json -> blerry.execute_action(cmd, idx, payload, payload_json))
 blerry.load_success()
 
