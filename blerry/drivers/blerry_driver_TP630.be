@@ -14,5 +14,5 @@ def blerry_handle(device, advert)
   end
 
 end
-blerry_active = true
+blerry_active = false
 print('BLY: Driver: TP630 Loaded')
