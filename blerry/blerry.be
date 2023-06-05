@@ -471,6 +471,7 @@ class Blerry_Device
       'iBBQ4'           : 'blerry_driver_iBBQ4.be',
       'iBBQ6'           : 'blerry_driver_iBBQ6.be',
       'WP6003'          : 'blerry_driver_WP6003.be',
+      'TP630'           : 'blerry_driver_TP630.be',
     }
     var fn = model_drivers[self.config['model']]
     blerry_handle = def () return nil end
