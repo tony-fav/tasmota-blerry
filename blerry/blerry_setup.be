@@ -38,6 +38,7 @@ def blerry_remove_files()
     'blerry_driver_WoContact.be',
     'blerry_driver_WoPresence.be',
     'blerry_driver_WoSensorTH.be',
+    'blerry_driver_WoSensorTHO.be',
     'blerry_driver_GVH5182.be',
     'blerry_driver_GVH5183.be',
     'blerry_driver_GVH5184.be',
