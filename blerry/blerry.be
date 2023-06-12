@@ -465,6 +465,7 @@ class Blerry_Device
       'WoHand'          : 'blerry_driver_WoHand.be',
       'WoPresence'      : 'blerry_driver_WoPresence.be',
       'WoSensorTH'      : 'blerry_driver_WoSensorTH.be',
+      'WoSensorTHO'     : 'blerry_driver_WoSensorTHO.be',
       'GVH5182'         : 'blerry_driver_GVH5184.be',
       'GVH5183'         : 'blerry_driver_GVH5183.be',
       'GVH5184'         : 'blerry_driver_GVH5184.be',
