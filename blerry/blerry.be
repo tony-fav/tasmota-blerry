@@ -6,7 +6,7 @@
 # Provides MQTT Discovery and Reporting for BLE Devices
 #######################################################################
 
-var blerry_version = 'v0.2.3-dev'
+var blerry_version = 'v0.2.4-dev'
 
 # TODO
 #   Resource Optimization
@@ -679,7 +679,7 @@ class Blerry_Device
       var s = self.sensors_to_discover[0]
       var msg = self.get_discovery_packet_base()
       msg['exp_aft'] = 600
-      msg['name'] = self.name + ' ' + self.sensors[s].name
+      msg['name'] = self.sensors[s].name
       msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.sensors[s].name
       if self.sensors[s].dev_cla
         msg['dev_cla'] = self.sensors[s].dev_cla
@@ -700,7 +700,7 @@ class Blerry_Device
       var s = self.binary_sensors_to_discover[0]
       var msg = self.get_discovery_packet_base()
       msg['exp_aft'] = 600
-      msg['name'] = self.name + ' ' + self.binary_sensors[s].name
+      msg['name'] = self.binary_sensors[s].name
       msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.binary_sensors[s].name
       if self.binary_sensors[s].dev_cla != 'none'
         msg['dev_cla'] = self.binary_sensors[s].dev_cla
@@ -719,7 +719,7 @@ class Blerry_Device
     if size(self.actions_to_discover)
       var a = self.actions_to_discover[0]
       var msg = self.get_discovery_packet_base()
-      msg['name'] = self.name + ' ' + self.actions[a].name
+      msg['name'] = self.actions[a].name
       msg['uniq_id'] = 'blerry_' + self.alias + '_' + self.actions[a].name
       msg['cmd_t'] = self.b.device_cmnd_topic + '/BlerryAction'
       msg['payload_press'] = json.dump({self.mac: self.actions[a].name})
