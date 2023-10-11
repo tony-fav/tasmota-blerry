@@ -6,7 +6,7 @@
 # Provides MQTT Discovery and Reporting for BLE Devices
 #######################################################################
 
-var blerry_version = 'v0.2.3-dev'
+var blerry_version = 'v0.2.4-dev'
 
 # TODO
 #   Resource Optimization
