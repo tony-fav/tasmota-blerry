@@ -896,8 +896,16 @@ class Blerry
 
   def handle_BLE_packet(value, trigger, msg)
     var advert = BLE_AdvData(bytes(value['p']))
+    var mac = string.split(value['mac'], 12)[0]
+    var device
     try
-      var device = self.devices[value['mac']]
+      device = self.devices[mac]
+    except .. as e, m
+      print('BLY: tried to get device with mac =', mac, 'and alias =', value['a'])
+      print(self.devices)
+      raise e, m
+    end
+    try
       # device.handle(device, advert)
       var handle_f = device.handle
       handle_f(device, advert)
@@ -907,7 +915,7 @@ class Blerry
         device.publish_available = true
       end
     except .. as e, m
-      print('BLY: tried to handle mac =', value['mac'], 'with alias =', value['a'])
+      print('BLY: tried to handle mac =', mac, 'with alias =', value['a'])
       raise e, m
     end
   end
