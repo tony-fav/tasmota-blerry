@@ -256,6 +256,7 @@ Final reminder, you must convert this yaml to json and save a `blerry_config.jso
 - ESP32-C3 based devices like the [SwitchBot Plug Mini](https://us.switch-bot.com/collections/all/products/switchbot-plug-mini) and Bulb
   - Tasmota 11.x and [12.0.2.2 dev](https://github.com/tasmota/install/raw/0533fd275fad9f4f3bf8350a6afdb9c6176d6879/firmware/unofficial/tasmota32c3-bluetooth.bin) seem to be the most stable right now. Newer versions seem to cause crashing.
   - Try SO57 0; This seems to improve reliability some.
+- If your device mac address has the /1 indicating a 'private static mac', that /1 should be included in the configuration. For example, `BlerrySetDevice {"D4E4A3XXXXXX/1":{"alias":"Switchbot_Temp_1","model":"WoSensorTH"}}`
 
 ## Supported Devices in BLErry v0.2.3-dev
 
