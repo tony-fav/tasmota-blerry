@@ -57,7 +57,7 @@ def blerry_handle(device, advert)
     elements = advert.get_elements_by_type_data(0x16, bytes('D2FC'), 0)
     if size(elements)
       var ad=elements[0].data[2];
-      if ad!=0x40 #not an V2 unencripted
+      if ad&0xC1!=0x40 #not an V2 unencripted
         return false
       end
       var Meas_Types = {
